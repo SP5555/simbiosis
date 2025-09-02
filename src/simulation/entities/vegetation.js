@@ -10,7 +10,7 @@ export default class Vegetation {
         extProb: 0.01,          // probability of vegetation dying out in this cell
 
         sprThreshold: 0.3,      // above this threshold, spread timer starts
-        sprInterval: 600,       // after this amount of ticks, spread becomes possible
+        sprInterval: 400,       // after this amount of ticks, spread becomes possible
         sprProb: 0.01,          // probability of spreading to random neighbor cell
         sprAmt: 0.02,           // spread this fraction of vegetation
     };

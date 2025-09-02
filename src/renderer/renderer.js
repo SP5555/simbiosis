@@ -1,7 +1,9 @@
 'use strict'
 
 import * as THREE from 'three';
-import { LandTile, WaterTile } from './tile.js';
+import { LandTile, WaterTile } from './world/tile.js';
+import TileManager from './mesh_managers/tile_manager.js';
+import VegetationManager from './mesh_managers/vegetation_manager.js';
 
 export default class Renderer {
     constructor(simulation) {
@@ -10,7 +12,6 @@ export default class Renderer {
 
     buildScene(simulation) {
         // ===== scene setup =====
-
         // Scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x101010);
@@ -37,25 +38,25 @@ export default class Renderer {
         // ===== simulation setup =====
         this.simulation = simulation;
         this.buildTiles();
+        this.buildInstancedMeshes();
     }
-
+    
     buildTiles() {
         const map = this.simulation.map;
         const maxMapWidth = 80, maxMapHeight = 60;
         const scale = Math.min(maxMapWidth / map.width, maxMapHeight / map.height);
         const mapWidth = Math.floor(map.width * scale);
         const mapHeight = Math.floor(map.height * scale);
-        const tileWidth = mapWidth / map.width;
-        const tileHeight = mapHeight / map.height;
-
+        this.tileWidth = mapWidth / map.width;
+        this.tileHeight = mapHeight / map.height;
+        
         this.tiles = [];
-
+        
         for (let x = 0; x < map.width; x++) {
             for (let y = 0; y < map.height; y++) {
                 const cell = map.getCell(x, y);
-                const tile = this.createTile(cell, tileWidth, tileHeight, mapWidth, mapHeight);
-
-                this.scene.add(...tile.getDrawable());
+                const tile = this.createTile(cell, this.tileWidth, this.tileHeight, mapWidth, mapHeight);
+                
                 this.tiles.push(tile);
             }
         }
@@ -66,17 +67,37 @@ export default class Renderer {
         else return new LandTile(cell, tileWidth, tileHeight, mapWidth, mapHeight);
     }
     
-    render(input, dt) {
-        this.updateScene(input, dt);
+    buildInstancedMeshes() {
+        const map = this.simulation.map;
+        const count = map.width * map.height;
 
-        this.renderer.render(this.scene, this.camera);
+        this.tileManager = new TileManager(this.tiles, this.tileWidth, this.tileHeight, count);
+        this.vegeManager = new VegetationManager(this.tiles, this.tileWidth, this.tileHeight, count);
+
+        this.tileManager.buildInstancedMeshes();
+        this.vegeManager.buildInstancedMeshes();
+
+        this.scene.add(this.tileManager.getDrawable());
+        this.scene.add(this.vegeManager.getDrawable());
     }
 
+    updateInstancedMeshes() {
+        this.tileManager.updateInstancedMeshes();
+        this.vegeManager.updateInstancedMeshes();
+    }
+    
+    render(input, dt) {
+        this.updateScene(input, dt);
+        
+        this.renderer.render(this.scene, this.camera);
+    }
+    
     updateScene(input, dt) {
         this.updateCamera(input);
         this.updateTiles(dt);
+        this.updateInstancedMeshes();
     }
-
+    
     updateCamera(input) {
         const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(input.mouseX * 0.2);
         const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(input.mouseY * 0.2);
@@ -84,13 +105,13 @@ export default class Renderer {
         this.camera.position.copy(parallaxAppliedPosition);
         this.camera.lookAt(0, 0, 4);
     }
-
+    
     updateTiles(dt) {
         for (let tile of this.tiles) {
             tile.updateAnimationState(dt);
         }
     }
-
+    
     onResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
