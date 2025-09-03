@@ -15,11 +15,13 @@ export default class GuiManager {
         const mapFolder = this.gui.addFolder("Map Generation");
 
         const mapParams = {
-            width: 5, height: 5, expand: 4,
-            seed: "night",
+            width: 4, height: 4, expand: 5,
+            seed: "write something",
             generate: () => {
                 this.simulation.generateMap(mapParams.width, mapParams.height, mapParams.expand, mapParams.seed);
                 this.renderer.rebuildScene();
+
+                terrainParams.apply();
             }
         };
 
@@ -32,13 +34,16 @@ export default class GuiManager {
         mapFolder.open();
 
         const terrainFolder = this.gui.addFolder("Terrain Filter");
-        const makeCallback = (filterName) => {
-            return () => this.renderer.mapFilterChange(filterName)
+        const terrainFilters = ["Biome", "Height", "Temperature", "Moisture"];
+        const terrainParams = {
+            filter: "Biome",
+            apply: () => this.renderer.mapFilterChange(terrainParams.filter)
         };
-        const filters = ["Biome", "Height", "Temperature", "Moisture"];
-        filters.forEach(name => {
-            terrainFolder.add({ run: makeCallback(name) }, 'run').name(name);
-        });
+        terrainFolder.add(terrainParams, 'filter', terrainFilters)
+            .name("Select Filter").onChange(() => terrainParams.apply());
         terrainFolder.open();
+
+        // initialize
+        mapParams.generate();
     }
 }

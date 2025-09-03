@@ -9,7 +9,7 @@ export default class MapGenerator {
         throw new Error("MapGenerator cannot be instantiated.");
     }
 
-    static generate(width, height, expand, seed) {
+    static generate(width, height, expand, seed=null) {
         if (seed !== undefined && seed !== null && seed !== "") {
             this.randomEngine = new RandomEngine(seed);
         } else {
@@ -121,8 +121,8 @@ export default class MapGenerator {
     }
 
     // average of 8 neighbors + self
-    // if neighbors dont exist (edge and corner tiles),
-    // it reduces to average of existing neighbors
+    // if not all neighbors exist (edge and corner tiles),
+    // it returns average of existing neighbors
     static ao9(map, x, y) {
         let totalValue = 0.0, neighborCount = 0;
         for (let dy = -1; dy <= 1; dy++) {

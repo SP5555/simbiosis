@@ -2,6 +2,8 @@
 
 Hobby project, a simple life simulator. Not much has been done yet.
 
+Hosted here: [Simbiosis World](https://simbiosis-world.netlify.app)
+
 ---
 
 ## How to run
