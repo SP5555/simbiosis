@@ -1,6 +1,6 @@
 'use strict'
 
-import MapGenerator from './world/map_generator.js';
+import MapGenerator from './world/map-generator.js';
 
 export default class Simulation {
     constructor() {

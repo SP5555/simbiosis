@@ -2,8 +2,8 @@
 
 import * as THREE from 'three';
 import { LandTile, WaterTile } from './world/tile.js';
-import TileManager from './mesh_managers/tile_manager.js';
-import VegetationManager from './mesh_managers/vegetation_manager.js';
+import TileManager from './mesh-managers/tile-manager.js';
+import VegetationManager from './mesh-managers/vegetation-manager.js';
 
 export default class Renderer {
     constructor(simulation) {

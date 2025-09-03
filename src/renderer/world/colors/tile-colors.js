@@ -72,7 +72,7 @@ export function temperatureToColor(temp) {
 
 export function biomeToColor(biome) {
     const colors = {
-        "Tundra":       0xbfbfb8,
+        "Tundra":       0xdfdfd8,
         "Steppe":       0xc4b082,
         "Desert":       0xc4aa4d,
 

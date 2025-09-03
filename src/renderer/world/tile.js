@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import Vegetation from '../entities/vegetation.js';
-import { seaColor, cellColor } from './colors/tile_colors.js';
+import { seaColor, cellColor } from './colors/tile-colors.js';
 
 class Tile {
     constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
@@ -10,7 +10,7 @@ class Tile {
         
         this.position = new THREE.Vector3(
             this.cell.x * tileWidth + tileWidth / 2 - mapWidth / 2,
-            Math.max(cell.elevation - 0.4, 0) * scale * 2,
+            Math.max(cell.elevation - 0.4, 0) * scale * 4,
             this.cell.y * tileHeight + tileHeight / 2 - mapHeight / 2,
         )
         

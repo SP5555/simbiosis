@@ -1,9 +1,10 @@
 'use strict'
 
+// import Stats from '../../node_modules/three/examples/jsm/libs/stats.module.js';
 import Input from '../input/input.js';
 import Renderer from '../renderer/renderer.js';
 import Simulation from '../simulation/simulation.js';
-import GuiManager from '../gui/gui_manager.js';
+import GuiManager from '../gui/gui-manager.js';
 
 export default class App {
     constructor() {

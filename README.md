@@ -10,7 +10,7 @@ Hosted here: [Simbiosis World](https://simbiosis-world.netlify.app)
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/simbiosis.git
+git clone https://github.com/SP5555/simbiosis.git
 cd simbiosis
 ```
 
