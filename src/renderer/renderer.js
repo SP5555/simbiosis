@@ -55,16 +55,16 @@ export default class Renderer {
         for (let x = 0; x < map.width; x++) {
             for (let y = 0; y < map.height; y++) {
                 const cell = map.getCell(x, y);
-                const tile = this.createTile(cell, this.tileWidth, this.tileHeight, mapWidth, mapHeight);
+                const tile = this.createTile(cell, this.tileWidth, this.tileHeight, mapWidth, mapHeight, scale);
                 
                 this.tiles.push(tile);
             }
         }
     }
     
-    createTile(cell, tileWidth, tileHeight, mapWidth, mapHeight) {
-        if (cell.isWater) return new WaterTile(cell, tileWidth, tileHeight, mapWidth, mapHeight);
-        else return new LandTile(cell, tileWidth, tileHeight, mapWidth, mapHeight);
+    createTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
+        if (cell.isWater) return new WaterTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
+        else return new LandTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
     }
     
     buildInstancedMeshes() {
@@ -80,11 +80,6 @@ export default class Renderer {
         this.scene.add(this.tileManager.getDrawable());
         this.scene.add(this.vegeManager.getDrawable());
     }
-
-    updateInstancedMeshes() {
-        this.tileManager.updateInstancedMeshes();
-        this.vegeManager.updateInstancedMeshes();
-    }
     
     render(input, dt) {
         this.updateScene(input, dt);
@@ -97,7 +92,18 @@ export default class Renderer {
         this.updateTiles(dt);
         this.updateInstancedMeshes();
     }
-    
+
+    updateTiles(dt) {
+        for (let tile of this.tiles) {
+            tile.updateAnimationState(dt);
+        }
+    }
+
+    updateInstancedMeshes() {
+        this.tileManager.updateInstancedMeshes();
+        this.vegeManager.updateInstancedMeshes();
+    }
+
     updateCamera(input) {
         const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(input.mouseX * 0.2);
         const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(input.mouseY * 0.2);
@@ -105,13 +111,7 @@ export default class Renderer {
         this.camera.position.copy(parallaxAppliedPosition);
         this.camera.lookAt(0, 0, 4);
     }
-    
-    updateTiles(dt) {
-        for (let tile of this.tiles) {
-            tile.updateAnimationState(dt);
-        }
-    }
-    
+
     onResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();

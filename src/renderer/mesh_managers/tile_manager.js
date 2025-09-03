@@ -20,7 +20,7 @@ export default class TileManager {
         let i = 0;
         this.tiles.forEach(tile => {
             // pos
-            this.instancedMesh.setMatrixAt(i, tile.translateMatrix);
+            this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
 
             // color
             const color = new THREE.Color().setHex(tile.baseColor);

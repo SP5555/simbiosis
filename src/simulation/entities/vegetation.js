@@ -2,36 +2,30 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        repRate: 0.02,          // reproduction rate
+        repRate: 0.012,         // reproduction rate
         deathRate: 0.02,        // death rate
 
-        extThreshold: 0.01,     // under this threshold, extinction timer starts
+        extThreshold: 0.10,     // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
-        extProb: 0.01,          // probability of vegetation dying out in this cell
+        extProb: 0.01,          // per-tick probability of vegetation dying
 
         sprThreshold: 0.3,      // above this threshold, spread timer starts
         sprInterval: 400,       // after this amount of ticks, spread becomes possible
-        sprProb: 0.01,          // probability of spreading to random neighbor cell
+        sprProb: 0.01,          // per-tick probability of spreading to random neighbor
         sprAmt: 0.02,           // spread this fraction of vegetation
+
+        max: 0.5,               // max vegetation allowed 
     };
 
-    constructor(height, moisture, options = {}) {
+    constructor(biome="default", options = {}) {
         this.value = 0;
-        this.max = this.computeMaxVegetation(height, moisture);
         this.deathTicks = 0;
         this.spreadTicks = 0;
-        Object.assign(this, Vegetation.DEFAULTS, options);
-    }
-    
-    computeMaxVegetation(height, moisture) {
-        if (this.isWater) return 0;
 
-        let heightSuitability = 1 - Math.abs(height - 0.5) / 0.3;
-        heightSuitability = Math.max(0, heightSuitability);
-
-        let moistureSuitability = moisture;
-        return heightSuitability * moistureSuitability;
+        this.biome = biome;
+        Object.assign(this, Vegetation.DEFAULTS, this.getBiomeVegetationDefaults(), options);
     }
+
 
     step(cell, map) {
         if (this.value <= 0) return;
@@ -80,6 +74,31 @@ export default class Vegetation {
             }
         } else {
             this.spreadTicks = 0;
+        }
+    }
+
+    getBiomeVegetationDefaults() {
+        switch (this.biome) {
+            case "Tundra":
+                return { repRate: 0.003, deathRate: 0.024, max: 0.10 };
+            case "Steppe":
+                return { repRate: 0.004, deathRate: 0.024, max: 0.15 }
+            case "Desert":
+                return { repRate: 0.005, deathRate: 0.024, max: 0.20 };
+            case "Taiga":
+                return { repRate: 0.014, deathRate: 0.020, max: 0.20 };
+            case "Temperate":
+                return { repRate: 0.016, deathRate: 0.020, max: 0.30 };
+            case "Savanna":
+                return { repRate: 0.018, deathRate: 0.020, max: 0.40 };
+            case "Boreal":
+                return { repRate: 0.016, deathRate: 0.020, max: 0.60 };
+            case "Forest": 
+                return { repRate: 0.018, deathRate: 0.020, max: 0.75 };
+            case "Rainforest":
+                return { repRate: 0.020, deathRate: 0.020, max: 0.90 };
+            default:
+                return { repRate: 0.000, deathRate: 0.000, max: 0.00 };
         }
     }
 }

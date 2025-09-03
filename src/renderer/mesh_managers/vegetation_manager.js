@@ -20,7 +20,7 @@ export default class VegetationManager {
         let i = 0;
         this.tiles.forEach(tile => {
             // pos
-            this.instancedMesh.setMatrixAt(i, tile.vegetation.vegMatrix);
+            this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
 
             i++;
         });
@@ -31,7 +31,7 @@ export default class VegetationManager {
         this.tiles.forEach(tile => {
             if (!tile.cell.isWater) {
                 // pos
-                this.instancedMesh.setMatrixAt(i, tile.vegetation.vegMatrix);
+                this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
 
                 // color
                 let color = tile.vegetation.currentColor;

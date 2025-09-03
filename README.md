@@ -19,8 +19,7 @@ npm install
 
 3. Start local server
 ```bash
-# Python 3
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 or any other static server you prefer.
 

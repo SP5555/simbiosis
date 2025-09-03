@@ -2,28 +2,29 @@
 
 import * as THREE from 'three';
 import Vegetation from '../entities/vegetation.js';
+import { lerpColor, addNoiseToColor } from '../utils/utils.js';
 
 class Tile {
-    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight) {
+    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
         this.cell = cell;
         
         this.position = new THREE.Vector3(
             this.cell.x * tileWidth + tileWidth / 2 - mapWidth / 2,
-            Math.max(cell.height, 0.4) * 4,
+            Math.max(cell.elevation, 0.4) * scale * 2,
             this.cell.y * tileHeight + tileHeight / 2 - mapHeight / 2,
         )
         
-        this.translateMatrix = new THREE.Matrix4();
-        this.translateMatrix.makeTranslation(this.position.x, this.position.y, this.position.z);
+        this.TSRMatrix = new THREE.Matrix4();
+        this.TSRMatrix.makeTranslation(this.position.x, this.position.y, this.position.z);
     }
 
     updateAnimationState(dt) { }
 }
 
 export class WaterTile extends Tile {
-    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight) {
-        super(cell, tileWidth, tileHeight, mapWidth, mapHeight);
-        this.baseColor = cellColor(this.cell);
+    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
+        super(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
+        this.baseColor = seaColor(this.cell.elevation);
         this.vegetation = new Vegetation(cell, this.position);
         
         // animation
@@ -43,8 +44,8 @@ export class WaterTile extends Tile {
 }
 
 export class LandTile extends Tile {
-    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight) {
-        super(cell, tileWidth, tileHeight, mapWidth, mapHeight);
+    constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
+        super(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
         this.baseColor = cellColor(this.cell);
         this.vegetation = new Vegetation(cell, this.position);
     }
@@ -55,47 +56,68 @@ export class LandTile extends Tile {
 }
 
 function cellColor(cell) {
-    let h = Math.min(Math.max(cell.height, 0), 1);
-    let baseColor = heightToColor(h);
+    // height
+    // let baseColor = elevationToColor(cell.elevation);
+    
+    // moisture
+    // return lerpColor(0x000000, 0x000ff, cell.moisture);
 
-    // let m = Math.min(Math.max(cell.moisture, 0), 1) * 0.8;
-    // let baseColor = 0x000000;
-    // const overlay = 0x000ff;
-    // return lerpColor(baseColor, overlay, m);
+    // biome
+    let baseColor = addNoiseToColor(biomeToColor(cell.biome), 0.01);
 
     return baseColor;
 }
 
-function heightToColor(height) {
+function seaColor(elevation) {
     let stops = [
-        [0.0, 0x3456cc],
+        [-2.0, 0x3436cc],
+        [0.0, 0x3446cc],
         [0.4, 0x3479cc],
-        [0.4, 0xcfa947],
-        [0.6, 0xb49043],
-        [0.7, 0xa17339],
-        [0.9, 0x8b8177],
-        [1.0, 0xaca49d],
     ];
     for (let i = 0; i < stops.length - 1; i++) {
         const [h1, c1] = stops[i];
         const [h2, c2] = stops[i + 1];
-        if (height >= h1 && height <= h2) {
-            const t = (height - h1) / (h2 - h1);
+        if (elevation >= h1 && elevation <= h2) {
+            const t = (elevation - h1) / (h2 - h1);
             return lerpColor(c1, c2, t);
         }
     }
     return stops[stops.length - 1][1];
 }
 
-function lerpColor(c1, c2, t) {
-    const r1 = (c1 >> 16) & 0xff;
-    const g1 = (c1 >> 8) & 0xff;
-    const b1 = c1 & 0xff;
-    const r2 = (c2 >> 16) & 0xff;
-    const g2 = (c2 >> 8) & 0xff;
-    const b2 = c2 & 0xff;
-    const r = Math.round(r1 + (r2 - r1) * t);
-    const g = Math.round(g1 + (g2 - g1) * t);
-    const b = Math.round(b1 + (b2 - b1) * t);
-    return (r << 16) | (g << 8) | b;
+function elevationToColor(elevation) {
+    let stops = [
+        [0.4, 0x303030],
+        [2.0, 0xc0c0c0],
+        [4.0, 0xffffff],
+    ];
+    for (let i = 0; i < stops.length - 1; i++) {
+        const [h1, c1] = stops[i];
+        const [h2, c2] = stops[i + 1];
+        if (elevation >= h1 && elevation <= h2) {
+            const t = (elevation - h1) / (h2 - h1);
+            return lerpColor(c1, c2, t);
+        }
+    }
+    return stops[stops.length - 1][1];
+}
+
+function biomeToColor(biome) {
+    const colors = {
+        "Tundra":       0xbfbfb8,
+        "Steppe":       0xc4b082,
+        "Desert":       0xc4aa4d,
+
+        "Taiga":        0xa88c63,
+        "Temperate":    0x8c724c,
+        "Savanna":      0x6e5735,
+
+        "Boreal":       0x997642,
+        "Forest":       0x8e6d3d, 
+        "Rainforest":   0x775c33,
+
+        "undefined":    0xff0000,
+    };
+
+    return colors[biome] ?? colors["undefined"];
 }

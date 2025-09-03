@@ -19,30 +19,30 @@ export default class MapGenerator {
         // ===== elevation =====
         let elevationMap = this.random2D(width, height);
         this.smooth(elevationMap);
-        this.amplify(elevationMap, 0.2, 0.5);
+        this.amplify(elevationMap, 0.3, 0.5);
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(elevationMap);
             this.applyNoise(elevationMap, 0.4);
-            for ( let p = 0; p < 1; p++ ) {
-                this.smooth(elevationMap);
-                this.amplify(elevationMap, 0.2, 0.5);
+            this.smooth(elevationMap, 0.4);
+            for ( let p = 0; p < 2; p++ ) {
+                this.amplify(elevationMap, 0.15, 0.4);
             }
         }
+        for ( let i = 0; i < 4; i++) this.smooth(elevationMap, 0.4);
 
         // ===== moisture =====
         let moistureMap = this.random2D(width, height);
         this.smooth(moistureMap);
-        this.amplify(moistureMap, 0.1, 0.0);
+        this.amplify(moistureMap, 0.1, 0.5);
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(moistureMap);
             this.applyNoise(moistureMap, 0.4);
-            for ( let p = 0; p < 1; p++ ) {
-                this.smooth(moistureMap);
-                this.amplify(moistureMap, 0.1, 0.0);
+            for ( let p = 0; p < 2; p++ ) {
+                this.smooth(moistureMap, 0.6);
+                this.amplify(moistureMap, 0.1, 0.5);
             }
         }
-        this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
-        this.smooth(moistureMap);
+        // this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
 
         return this.constructMap(elevationMap, moistureMap);
     }
@@ -56,7 +56,7 @@ export default class MapGenerator {
                     newMoisture = 1.0;
                 } else {
                     let t = (h - seaLevel) / (1 - seaLevel);
-                    newMoisture = moistureMap[y][x] * (1.0 - t);
+                    newMoisture = moistureMap[y][x] * (1.0 - 0.5 * t);
                 }
                 moistureMap[y][x] = newMoisture;
             }
@@ -76,12 +76,13 @@ export default class MapGenerator {
         return eMap;
     }
 
-    static smooth(map) {
+    static smooth(map, strength = 1.0) {
         const newMap = [];
         for (let y = 0; y < map.metaData.height; y++) {
             const row = [];
             for (let x = 0; x < map.metaData.width; x++) {
-                const avg = this.ao9(map, x, y);
+                let oldVal = map[y][x];
+                const avg = oldVal + strength * (this.ao9(map, x, y) - oldVal);
                 row.push(avg);
             }
             newMap.push(row);
@@ -144,10 +145,9 @@ export default class MapGenerator {
         for (let y = 0; y < elevationMap.metaData.height; y++) {
             const row = [];
             for (let x = 0; x < elevationMap.metaData.width; x++) {
-                const height = elevationMap[y][x];
-                const isWater = height < 0.4;
+                const elevation = elevationMap[y][x];
                 const moisture = moistureMap[y][x];
-                row.push(new Cell(x, y, height, isWater, moisture));
+                row.push(new Cell(x, y, elevation, moisture));
             }
             cells.push(row);
         }
