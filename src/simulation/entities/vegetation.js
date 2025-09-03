@@ -2,30 +2,31 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        repRate: 0.012,         // reproduction rate
-        deathRate: 0.02,        // death rate
+        growthRate: 0.012,      // change rate (also handles death)
 
         extThreshold: 0.10,     // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
         extProb: 0.01,          // per-tick probability of vegetation dying
 
-        sprThreshold: 0.3,      // above this threshold, spread timer starts
-        sprInterval: 400,       // after this amount of ticks, spread becomes possible
+        sprThreshold: 0.5,      // above this threshold, spread timer starts
+        sprInterval: 300,       // after this amount of ticks, spread becomes possible
         sprProb: 0.01,          // per-tick probability of spreading to random neighbor
-        sprAmt: 0.02,           // spread this fraction of vegetation
+        sprAmt: 0.01,           // spread this amount of vegetation
 
         max: 0.5,               // max vegetation allowed 
     };
 
-    constructor(biome="default", options = {}) {
+    constructor(temperature, moisture, biome="default", options = {}) {
         this.value = 0;
         this.deathTicks = 0;
         this.spreadTicks = 0;
 
         this.biome = biome;
-        Object.assign(this, Vegetation.DEFAULTS, this.getBiomeVegetationDefaults(), options);
+        Object.assign(this, Vegetation.DEFAULTS,
+            // this.getBiomeVegetationDefaults(),
+            this.calcParams(temperature, moisture),
+            options);
     }
-
 
     step(cell, map) {
         if (this.value <= 0) return;
@@ -37,9 +38,8 @@ export default class Vegetation {
     }
 
     handleGrowth() {
-        let deltaR = this.repRate * this.value;
-        let deltaD = this.deathRate * this.value * (this.value / (this.max + 1e-3));
-        this.value += deltaR - deltaD;
+        let P = this.value;
+        this.value += this.growthRate * P * (1 - P / (this.max + 1e-5));
     }
 
     handleExtinction() {
@@ -63,9 +63,8 @@ export default class Vegetation {
                 if (dx !== 0 || dy !== 0) {
                     let neighbor = map.getCell(cell.x + dx, cell.y + dy);
                     if (neighbor && !neighbor.isWater) {
-                        let s = this.value * this.sprAmt;
-                        neighbor.vegetation.value += s;
-                        this.value -= s;
+                        let exceed = neighbor.vegetation.add(this.sprAmt);
+                        this.value += (-this.sprAmt + exceed);
                         this.spreadTicks = 0;
                     }
                 }
@@ -77,28 +76,49 @@ export default class Vegetation {
         }
     }
 
+    // receives spread from neighbor
+    add(spr) {
+        if (this.value >= 1.0) return spr;
+        let accepted = Math.min(spr, 1.0 - this.value);
+        let exceed = spr - accepted;
+        this.value += accepted;
+        return exceed;
+    }
+
+    calcParams(t, m) {
+        let G = this.gauss;
+        let max        = (1 + Math.min(0, 0.03 * (t - 24)) - Math.max(0, 0.026 * (t - 40))) * G(m, 1, 0.5);
+        let growthRate = (0.01 + Math.min(0, 0.0004 * (t - 22)) - Math.max(0, 0.0004 * (t - 40))) * G(m, 1, 0.4);
+
+        return { growthRate: Math.max(0, growthRate), max: max }
+    }
+
+    gauss(x, opt, sigma) {
+        return Math.exp( -0.5 * ((x - opt)/sigma) ** 2 );
+    }
+
     getBiomeVegetationDefaults() {
         switch (this.biome) {
             case "Tundra":
-                return { repRate: 0.003, deathRate: 0.024, max: 0.10 };
+                return { growthRate: 0.003, max: 0.10 };
             case "Steppe":
-                return { repRate: 0.004, deathRate: 0.024, max: 0.15 }
+                return { growthRate: 0.004, max: 0.15 }
             case "Desert":
-                return { repRate: 0.005, deathRate: 0.024, max: 0.20 };
+                return { growthRate: 0.005, max: 0.20 };
             case "Taiga":
-                return { repRate: 0.014, deathRate: 0.020, max: 0.20 };
+                return { growthRate: 0.014, max: 0.20 };
             case "Temperate":
-                return { repRate: 0.016, deathRate: 0.020, max: 0.30 };
+                return { growthRate: 0.016, max: 0.30 };
             case "Savanna":
-                return { repRate: 0.018, deathRate: 0.020, max: 0.40 };
+                return { growthRate: 0.018, max: 0.40 };
             case "Boreal":
-                return { repRate: 0.016, deathRate: 0.020, max: 0.60 };
+                return { growthRate: 0.016, max: 0.60 };
             case "Forest": 
-                return { repRate: 0.018, deathRate: 0.020, max: 0.75 };
+                return { growthRate: 0.018, max: 0.75 };
             case "Rainforest":
-                return { repRate: 0.020, deathRate: 0.020, max: 0.90 };
+                return { growthRate: 0.020, max: 0.90 };
             default:
-                return { repRate: 0.000, deathRate: 0.000, max: 0.00 };
+                return { growthRate: 0.000, max: 0.00 };
         }
     }
 }

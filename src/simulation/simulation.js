@@ -5,7 +5,11 @@ import MapGenerator from './world/map_generator.js';
 export default class Simulation {
     constructor() {
         this.time = 0;
-        this.map = MapGenerator.generate(10, 8, 4, "local host");
+        this.generateMap(5, 5, 4, "night");
+    }
+
+    generateMap(width, height, expand, seed=null) {
+        this.map = MapGenerator.generate(width, height, expand, seed);
     }
 
     step() {

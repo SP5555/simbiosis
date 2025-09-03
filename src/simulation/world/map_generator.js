@@ -10,7 +10,7 @@ export default class MapGenerator {
     }
 
     static generate(width, height, expand, seed) {
-        if (seed !== undefined && seed !== null) {
+        if (seed !== undefined && seed !== null && seed !== "") {
             this.randomEngine = new RandomEngine(seed);
         } else {
             this.randomEngine = new RandomEngine(Math.random().toString());
@@ -19,16 +19,14 @@ export default class MapGenerator {
         // ===== elevation =====
         let elevationMap = this.random2D(width, height);
         this.smooth(elevationMap);
-        this.amplify(elevationMap, 0.3, 0.5);
+        this.amplify(elevationMap, 0.2, 0.5);
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(elevationMap);
             this.applyNoise(elevationMap, 0.4);
             this.smooth(elevationMap, 0.4);
-            for ( let p = 0; p < 2; p++ ) {
-                this.amplify(elevationMap, 0.15, 0.4);
-            }
+            this.amplify(elevationMap, 0.1, 0.4);
         }
-        for ( let i = 0; i < 4; i++) this.smooth(elevationMap, 0.4);
+        for ( let i = 0; i < 4; i++) this.smooth(elevationMap, 0.5);
 
         // ===== moisture =====
         let moistureMap = this.random2D(width, height);
@@ -37,10 +35,8 @@ export default class MapGenerator {
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(moistureMap);
             this.applyNoise(moistureMap, 0.4);
-            for ( let p = 0; p < 2; p++ ) {
-                this.smooth(moistureMap, 0.6);
-                this.amplify(moistureMap, 0.1, 0.5);
-            }
+            this.smooth(moistureMap, 0.6);
+            this.amplify(moistureMap, 0.2, 0.5);
         }
         // this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
 

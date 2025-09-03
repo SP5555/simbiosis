@@ -14,7 +14,7 @@ export default class Cell {
         this.isWater = elevation < SEA_LEVEL;
 
         this.biome = this.classifyBiome();
-        this.vegetation = new Vegetation(this.biome);
+        this.vegetation = new Vegetation(this.temperature, this.moisture, this.biome);
 
         if (!this.isWater) {
             this.vegetation.value = Math.random() < 0.05 ? 0.01 : 0;
@@ -31,9 +31,10 @@ export default class Cell {
         const maxElev = 1.0;
 
         const minTemp = 0;
-        const maxTemp = 50;
+        const maxTemp = 46;
 
-        let t = (elevation - minElev) / (maxElev - minElev);
+        let e = Math.max(0.4, elevation);
+        let t = (e - minElev) / (maxElev - minElev);
         const temp = maxTemp - t * (maxTemp - minTemp);
         return temp;
     }
@@ -44,11 +45,11 @@ export default class Cell {
         const t = this.temperature;
         const m = this.moisture;
 
-        if (m < 0.3) {
+        if (m < 0.2) {
             if (t < 4) return "Tundra";
-            if (t < 30) return "Steppe";
+            if (t < 26) return "Steppe";
             return "Desert";
-        } else if (m < 0.7) {
+        } else if (m < 0.8) {
             if (t < 4) return "Taiga";
             if (t < 30) return "Temperate";
             return "Savanna";

@@ -19,6 +19,7 @@ export default class Renderer {
         // Camera
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.cameraPosition = new THREE.Vector3(0, 60, 40);
+        this.cameraLookAt = new THREE.Vector3(0, 0, 4);
         this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
         this.camera.lookAt(0, 0, 4);
 
@@ -81,6 +82,20 @@ export default class Renderer {
         this.scene.add(this.vegeManager.getDrawable());
     }
     
+    rebuildScene() {
+        this.clearScene();
+        this.buildTiles();
+        this.buildInstancedMeshes();
+    }
+
+    clearScene() {
+        this.scene.remove(this.tileManager.getDrawable());
+        this.scene.remove(this.vegeManager.getDrawable());
+        // release GPU memory
+        this.tileManager.dispose();
+        this.vegeManager.dispose();
+    }
+
     render(input, dt) {
         this.updateScene(input, dt);
         
@@ -105,11 +120,28 @@ export default class Renderer {
     }
 
     updateCamera(input) {
+        // const { dx, dy } = input.consumeDelta();
+        
+        // pan
+        // this.cameraPosition.x -= dx * 0.1;
+        // this.cameraPosition.z -= dy * 0.1;
+        // this.cameraLookAt.x -= dx * 0.1;
+        // this.cameraLookAt.z -= dy * 0.1;
+
+        // parallax
         const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(input.mouseX * 0.2);
         const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(input.mouseY * 0.2);
         const parallaxAppliedPosition = this.cameraPosition.clone().add(shiftX).add(shiftY);
+
         this.camera.position.copy(parallaxAppliedPosition);
-        this.camera.lookAt(0, 0, 4);
+        this.camera.lookAt(this.cameraLookAt);
+    }
+
+    mapFilterChange(filterName) {
+        for (let tile of this.tiles) {
+            tile.filterChange(filterName);
+        }
+        this.tileManager.updateTerrainFilter();
     }
 
     onResize() {

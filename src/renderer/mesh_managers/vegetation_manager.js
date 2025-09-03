@@ -11,7 +11,7 @@ export default class VegetationManager {
     }
 
     buildInstancedMeshes() {
-        const geometry = new THREE.PlaneGeometry(0.8 * this.tileWidth, 0.8 * this.tileHeight);
+        const geometry = new THREE.PlaneGeometry(0.75 * this.tileWidth, 0.75 * this.tileHeight);
         const material = new THREE.MeshStandardMaterial();
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
@@ -42,6 +42,14 @@ export default class VegetationManager {
 
         this.instancedMesh.instanceMatrix.needsUpdate = true;
         this.instancedMesh.instanceColor.needsUpdate = true;
+    }
+
+    dispose() {
+        if (this.instancedMesh) {
+            this.instancedMesh.geometry.dispose();
+            this.instancedMesh.material.dispose();
+            this.instancedMesh = null;
+        }
     }
 
     getDrawable() {
