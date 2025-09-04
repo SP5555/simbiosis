@@ -1,12 +1,12 @@
 'use strict'
 
-import { lerpColor, addNoiseToColor } from '../../utils/utils.js';
+import { lerpColor } from '../../utils/utils.js';
 
 export function cellColor(cell, filterName) {
     if (filterName == "Height") return elevationToColor(cell.elevation);
     if (filterName == "Temperature") return temperatureToColor(cell.temperature);
     if (filterName == "Moisture") return moistureToColor(cell.moisture);
-    if (filterName == "Biome") return addNoiseToColor(biomeToColor(cell.biome), 0.01);
+    if (filterName == "Biome") return biomeToColor(cell);
     return 0xff0000;
 }
 
@@ -54,9 +54,9 @@ export function temperatureToColor(temp) {
     let stops = [
         [-20, 0x3434ff],
         [0, 0x111111],
-        [20,0x00cc00],
-        [40,0xcccc00],
-        [100, 0xff3434],
+        [26,0x00cc00],
+        [32,0xcccc00],
+        [50, 0xff3434],
     ];
     if (temp <= stops[0][0]) return stops[0][1];
     if (temp >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
@@ -70,22 +70,39 @@ export function temperatureToColor(temp) {
     }
 }
 
-export function biomeToColor(biome) {
+export function biomeToColor(cell) {
+    const biome = cell.biome;
     const colors = {
-        "Tundra":       0xdfdfd8,
-        "Steppe":       0xc4b082,
-        "Desert":       0xc4aa4d,
+        "Tundra":       0xa3914d,
+        "Steppe":       0xa89034,
+        "Desert":       0xad8f1f,
 
-        "Taiga":        0xa88c63,
-        "Temperate":    0x8c724c,
-        "Savanna":      0x6e5735,
+        "Taiga":        0x9e8451,
+        "Temperate":    0x94773d,
+        "Savanna":      0x8f6f2f,
 
-        "Boreal":       0x997642,
-        "Forest":       0x8e6d3d, 
-        "Rainforest":   0x775c33,
+        "Boreal":       0x96744d,
+        "Forest":       0x8f6a3f, 
+        "Rainforest":   0x855d2e,
 
         "undefined":    0xff0000,
     };
 
-    return colors[biome] ?? colors["undefined"];
+    let baseColor = colors[biome] ?? colors["undefined"];
+
+    // moisture mask
+    const moistureFactor = Math.min(1, Math.max(0, cell.moisture));
+    baseColor = lerpColor(baseColor, 0x000000, moistureFactor * 0.4);
+
+    // snow mask
+    const snowColor = 0xdfdfdf;
+    const snowStarts = 2;
+    const snowMax = -4;
+    let t = 0;
+    if (cell.temperature <= snowStarts) {
+        t = (snowStarts - cell.temperature) / (snowStarts - snowMax);
+        t = Math.min(1, Math.max(0, t));
+    }
+
+    return lerpColor(baseColor, snowColor, t);
 }

@@ -7,6 +7,7 @@ import { seaColor, cellColor } from './colors/tile-colors.js';
 class Tile {
     constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
         this.cell = cell;
+        this.currentFilter = null;
         
         this.position = new THREE.Vector3(
             this.cell.x * tileWidth + tileWidth / 2 - mapWidth / 2,
@@ -27,16 +28,21 @@ export class WaterTile extends Tile {
     constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
         super(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
         this.baseColor = new THREE.Color().setHex(seaColor(this.cell.elevation));
+        
         this.vegetation = new Vegetation(cell, this.position);
         
         // animation
-        this.currentColor = null;
+        this.currentColor = this.baseColor;
         this.phase = Math.random() * Math.PI * 2;
         this.speed = 2;
         this.elapsed = 0;
     }
 
     updateAnimationState(dt) {
+        this.updateColor(dt);
+    }
+
+    updateColor(dt) {
         this.elapsed += dt * this.speed;
         if (this.elapsed > Math.PI * 2) this.elapsed -= Math.PI * 2;
 
@@ -44,21 +50,33 @@ export class WaterTile extends Tile {
         this.currentColor = this.baseColor.clone().multiplyScalar(1 + wobble);
     }
 
-    filterChange(filterName) { }
+    filterChange(filterName) {
+        this.currentFilter = filterName;
+    }
 }
 
 export class LandTile extends Tile {
     constructor(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
         super(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
         this.baseColor = new THREE.Color().setHex(cellColor(this.cell, "Biome"));
+        
         this.vegetation = new Vegetation(cell, this.position);
+        
+        // animation
+        this.currentColor = this.baseColor;
     }
 
     updateAnimationState(dt) {
+        this.updateColor(dt);
         this.vegetation.update(dt);
     }
 
+    updateColor() {
+        this.currentColor = new THREE.Color().setHex(cellColor(this.cell, this.currentFilter));
+    }
+
     filterChange(filterName) {
-        this.baseColor = new THREE.Color().setHex(cellColor(this.cell, filterName));
+        this.currentFilter = filterName;
+        this.updateColor();
     }
 }

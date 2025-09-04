@@ -30,6 +30,10 @@ export default class Vegetation {
 
     step(cell, map) {
         if (this.value <= 0) return;
+        if (cell.tempChanged) {
+            this.calcParams(cell.temperature, cell.moisture);
+        }
+
         this.handleExtinction();
         this.handleGrowth();
         this.handleSpread(cell, map);
@@ -39,7 +43,15 @@ export default class Vegetation {
 
     handleGrowth() {
         let P = this.value;
-        this.value += this.growthRate * P * (1 - P / (this.max + 1e-5));
+        let growthFactor = Math.max(0, this.growthRate);
+        let mortalityFactor = 0;
+        // threshold for poor conditions
+        if (this.growthRate < 0.0001) mortalityFactor = 0.02;
+
+        P += growthFactor * P * (1 - P / (this.max + 1e-5));
+        P -= mortalityFactor * P;
+
+        this.value = P;
     }
 
     handleExtinction() {
@@ -87,8 +99,8 @@ export default class Vegetation {
 
     calcParams(t, m) {
         let G = this.gauss;
-        let max        = (1 + Math.min(0, 0.03 * (t - 24)) - Math.max(0, 0.026 * (t - 40))) * G(m, 1, 0.5);
-        let growthRate = (0.01 + Math.min(0, 0.0004 * (t - 22)) - Math.max(0, 0.0004 * (t - 40))) * G(m, 1, 0.4);
+        let max        = (1.00 + Math.min(0, 0.0350 * (t - 26)) - Math.max(0, 0.0500 * (t - 32))) * G(m, 1, 0.5);
+        let growthRate = (0.01 + Math.min(0, 0.0005 * (t - 20)) - Math.max(0, 0.0006 * (t - 35))) * G(m, 1, 0.4);
 
         return { growthRate: Math.max(0, growthRate), max: max }
     }

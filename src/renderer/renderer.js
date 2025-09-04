@@ -141,7 +141,6 @@ export default class Renderer {
         for (let tile of this.tiles) {
             tile.filterChange(filterName);
         }
-        this.tileManager.updateTerrainFilter();
     }
 
     onResize() {

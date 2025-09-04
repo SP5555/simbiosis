@@ -23,7 +23,7 @@ export default class TileManager {
             this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
 
             // color
-            let color = tile.baseColor;
+            let color = tile.currentColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
 
             i++;
@@ -31,30 +31,16 @@ export default class TileManager {
     }
 
     updateInstancedMeshes() {
-        let i = 0;
-        this.tiles.forEach(tile => {
-            if (tile.cell.isWater) {
-                // color
-                let color = tile.currentColor;
-                this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-            }
-            i++;
-        });
-
-        this.instancedMesh.instanceColor.needsUpdate = true;
+        this.updateColors();
     }
 
-    updateTerrainFilter() {
+    updateColors() {
         let i = 0;
         this.tiles.forEach(tile => {
-            if (!tile.cell.isWater) {
-                // color
-                const color = tile.baseColor;
-                this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-            }
+            let color = tile.currentColor;
+            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             i++;
         });
-
         this.instancedMesh.instanceColor.needsUpdate = true;
     }
 

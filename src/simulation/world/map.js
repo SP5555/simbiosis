@@ -7,10 +7,10 @@ export default class Map {
         this.cells = cells;
     }
 
-    step() {
+    step(bT) {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
-                this.getCell(x, y).step(this);
+                this.getCell(x, y).step(bT, this);
             }
         }
     }

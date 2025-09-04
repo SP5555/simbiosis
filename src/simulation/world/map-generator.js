@@ -9,7 +9,7 @@ export default class MapGenerator {
         throw new Error("MapGenerator cannot be instantiated.");
     }
 
-    static generate(width, height, expand, seed=null) {
+    static generate(width, height, expand, seed=null, baseTemp=10) {
         if (seed !== undefined && seed !== null && seed !== "") {
             this.randomEngine = new RandomEngine(seed);
         } else {
@@ -19,7 +19,7 @@ export default class MapGenerator {
         // ===== elevation =====
         let elevationMap = this.random2D(width, height);
         this.smooth(elevationMap);
-        this.amplify(elevationMap, 0.2, 0.5);
+        this.amplify(elevationMap, 0.4, 0.4);
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(elevationMap);
             this.applyNoise(elevationMap, 0.4);
@@ -40,7 +40,7 @@ export default class MapGenerator {
         }
         // this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
 
-        return this.constructMap(elevationMap, moistureMap);
+        return this.constructMap(elevationMap, moistureMap, baseTemp);
     }
 
     static moistureAdjustByElevation(moistureMap, elevationMap, seaLevel = 0.4) {
@@ -136,14 +136,14 @@ export default class MapGenerator {
         return totalValue / neighborCount;
     }
     
-    static constructMap(elevationMap, moistureMap) {
+    static constructMap(elevationMap, moistureMap, baseTemp) {
         let cells = [];
         for (let y = 0; y < elevationMap.metaData.height; y++) {
             const row = [];
             for (let x = 0; x < elevationMap.metaData.width; x++) {
                 const elevation = elevationMap[y][x];
                 const moisture = moistureMap[y][x];
-                row.push(new Cell(x, y, elevation, moisture));
+                row.push(new Cell(x, y, elevation, moisture, baseTemp));
             }
             cells.push(row);
         }

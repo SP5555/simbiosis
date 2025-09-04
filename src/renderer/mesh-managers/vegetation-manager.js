@@ -39,7 +39,6 @@ export default class VegetationManager {
             }
             i++;
         });
-
         this.instancedMesh.instanceMatrix.needsUpdate = true;
         this.instancedMesh.instanceColor.needsUpdate = true;
     }
