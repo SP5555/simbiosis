@@ -27,7 +27,9 @@ export default class GuiManager {
         const mapParams = {
             width: 4, height: 4, expand: 5,
             seed: "write something",
+            startSeason: "Spring",
             generate: () => {
+                this.simulation.setStartSeason(mapParams.startSeason);
                 this.simulation.generateMap(mapParams.width, mapParams.height, mapParams.expand, mapParams.seed);
                 this.renderer.rebuildScene();
 
@@ -38,6 +40,7 @@ export default class GuiManager {
         mapFolder.add(mapParams, 'height', 1, 8, 1).name("Base Map Height");
         mapFolder.add(mapParams, 'expand', 0, 8, 1).name("Expand Times");
         mapFolder.add(mapParams, 'seed').name("Seed");
+        mapFolder.add(mapParams, 'startSeason', ["Spring", "Summer", "Fall", "Winter"]).name("Start Season");
         mapFolder.add(mapParams, 'generate').name("Generate Map");
         mapFolder.open();
 

@@ -1,3 +1,7 @@
+'use strict'
+
+import * as THREE from 'three'
+
 export function lerpColor(c1, c2, t) {
     const tt = Math.max(0, Math.min(t, 1));
     const r1 = (c1 >> 16) & 0xff;
@@ -23,4 +27,8 @@ export function addNoiseToColor(color, variation = 0.05) {
     b = Math.min(255, Math.max(0, b + Math.floor((Math.random() * 2 - 1) * 255 * variation)));
 
     return (r << 16) | (g << 8) | b;
+}
+
+export function hexToColor(hex) {
+    return new THREE.Color().setHex(hex);
 }

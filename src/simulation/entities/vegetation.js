@@ -16,8 +16,8 @@ export default class Vegetation {
         max: 0.5,               // max vegetation allowed 
     };
 
-    constructor(temperature, moisture, biome="default", options = {}) {
-        this.value = 0;
+    constructor(temperature, moisture, biome="default", value=0, options = {}) {
+        this.value = value;
         this.deathTicks = 0;
         this.spreadTicks = 0;
 
@@ -35,21 +35,20 @@ export default class Vegetation {
         }
 
         this.handleExtinction();
-        this.handleGrowth();
+        this.handleGrowth(cell);
         this.handleSpread(cell, map);
 
         this.value = Math.max(0, this.value);
     }
 
-    handleGrowth() {
+    handleGrowth(cell) {
         let P = this.value;
         let growthFactor = Math.max(0, this.growthRate);
-        let mortalityFactor = 0;
-        // threshold for poor conditions
-        if (this.growthRate < 0.0001) mortalityFactor = 0.02;
-
+        
         P += growthFactor * P * (1 - P / (this.max + 1e-5));
-        P -= mortalityFactor * P;
+        // die threshold for poor conditions
+        if (cell.temperature < -4) P -= 0.002;
+
 
         this.value = P;
     }

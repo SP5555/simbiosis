@@ -1,19 +1,39 @@
 'use strict'
 
-import { lerpColor } from '../../utils/utils.js';
+import { lerpColor, hexToColor } from '../../utils/utils.js';
 
-export function cellColor(cell, filterName) {
-    if (filterName == "Height") return elevationToColor(cell.elevation);
-    if (filterName == "Temperature") return temperatureToColor(cell.temperature);
-    if (filterName == "Moisture") return moistureToColor(cell.moisture);
-    if (filterName == "Biome") return biomeToColor(cell);
-    return 0xff0000;
+export function waterColor(tile, dt) {
+    let filterName = tile.currentFilter;
+    if (filterName == "Height")
+        return hexToColor(elevationToColor(tile.cell.elevation));
+    return waterWobbleColor(tile, dt);
 }
 
-export function seaColor(elevation) {
+export function cellColor(tile) {
+    let filterName = tile.currentFilter;
+    if (filterName == "Height")
+        return hexToColor(elevationToColor(tile.cell.elevation));
+    if (filterName == "Temperature")
+        return hexToColor(temperatureToColor(tile.cell.temperature));
+    if (filterName == "Moisture")
+        return hexToColor(moistureToColor(tile.cell.moisture));
+    if (filterName == "Biome")
+        return hexToColor(biomeToColor(tile.cell));
+    return hexToColor(0xff0000);
+}
+
+export function waterWobbleColor(tile, dt) {
+    tile.elapsed += dt * tile.speed;
+    if (tile.elapsed > Math.PI * 2) tile.elapsed -= Math.PI * 2;
+    
+    const wobble = Math.sin(tile.elapsed + tile.phase) * 0.1;
+    return tile.baseColor.clone().multiplyScalar(1 + wobble);
+}
+
+export function seaDepthToColor(elevation) {
     let stops = [
-        [0.0, 0x3446cc],
-        [0.4, 0x3479cc],
+        [-2000, 0x2436cc],
+        [0, 0x3479cc],
     ];
     if (elevation <= stops[0][0]) return stops[0][1];
     if (elevation >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
@@ -30,9 +50,13 @@ export function seaColor(elevation) {
 
 export function elevationToColor(elevation) {
     let stops = [
-        [0.4, 0x303030],
-        [1.0, 0xcfcf00],
-        [2.0, 0xff00ff],
+        [-4000, 0x000000],
+        [0, 0x73bcfc],
+        [0, 0x3535fc],
+        [1000, 0x34eb34],
+        [3000, 0xded831],
+        [4000, 0xd63838],
+        [5000, 0xececec],
     ];
     if (elevation <= stops[0][0]) return stops[0][1];
     if (elevation >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
@@ -96,11 +120,11 @@ export function biomeToColor(cell) {
 
     // snow mask
     const snowColor = 0xdfdfdf;
-    const snowStarts = 2;
-    const snowMax = -4;
+    const snowStartTemp = 2;
+    const snowMaxTemp = -4;
     let t = 0;
-    if (cell.temperature <= snowStarts) {
-        t = (snowStarts - cell.temperature) / (snowStarts - snowMax);
+    if (cell.temperature <= snowStartTemp) {
+        t = (snowStartTemp - cell.temperature) / (snowStartTemp - snowMaxTemp);
         t = Math.min(1, Math.max(0, t));
     }
 

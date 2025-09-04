@@ -17,19 +17,19 @@ export default class MapGenerator {
         }
 
         // ===== elevation =====
-        let elevationMap = this.random2D(width, height);
+        let elevationMap = this.random2D(width, height, -2400, 3000);
         this.smooth(elevationMap);
-        this.amplify(elevationMap, 0.4, 0.4);
+        this.amplify(elevationMap, 0.3, 0.0);
         for ( let i = 0; i < expand; i++ ) {
             this.expand4x(elevationMap);
-            this.applyNoise(elevationMap, 0.4);
-            this.smooth(elevationMap, 0.4);
-            this.amplify(elevationMap, 0.1, 0.4);
+            this.applyNoise(elevationMap, 2000);
+            this.smooth(elevationMap, 0.6);
+            this.amplify(elevationMap, 0.2, 0.0);
         }
         for ( let i = 0; i < 4; i++) this.smooth(elevationMap, 0.5);
 
         // ===== moisture =====
-        let moistureMap = this.random2D(width, height);
+        let moistureMap = this.random2D(width, height, 0, 1);
         this.smooth(moistureMap);
         this.amplify(moistureMap, 0.1, 0.5);
         for ( let i = 0; i < expand; i++ ) {
@@ -43,7 +43,7 @@ export default class MapGenerator {
         return this.constructMap(elevationMap, moistureMap, baseTemp);
     }
 
-    static moistureAdjustByElevation(moistureMap, elevationMap, seaLevel = 0.4) {
+    static moistureAdjustByElevation(moistureMap, elevationMap, seaLevel = 0) {
         for (let y = 0; y < moistureMap.metaData.height; y++) {
             for (let x = 0; x < moistureMap.metaData.width; x++) {
                 const h = elevationMap[y][x];
@@ -59,12 +59,12 @@ export default class MapGenerator {
         }
     }
     
-    static random2D(width, height) {
+    static random2D(width, height, low, high) {
         const eMap = [];
         for (let y = 0; y < height; y++) {
             let row = [];
             for (let x = 0; x < width; x++) {
-                row.push(this.randomEngine.rand1f());
+                row.push(this.randomEngine.rand1f() * (high - low) + low);
             }
             eMap.push(row);
         }
@@ -94,10 +94,10 @@ export default class MapGenerator {
         }
     }
 
-    static applyNoise(map, amount = 0.2) {
+    static applyNoise(map, range = 1) {
         for (let y = 0; y < map.metaData.height; y++) {
             for (let x = 0; x < map.metaData.width; x++) {
-                map[y][x] += (this.randomEngine.rand1f() - 0.5) * amount;
+                map[y][x] += (this.randomEngine.rand1f() - 0.5) * range;
             }
         }
     }

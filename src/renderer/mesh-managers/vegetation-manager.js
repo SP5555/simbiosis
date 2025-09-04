@@ -27,20 +27,31 @@ export default class VegetationManager {
     }
 
     updateInstancedMeshes() {
+        this.updateColors();
+        this.updatePos();
+    }
+
+    updateColors() {
         let i = 0;
         this.tiles.forEach(tile => {
             if (!tile.cell.isWater) {
-                // pos
-                this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
-
-                // color
                 let color = tile.vegetation.currentColor;
                 this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             }
             i++;
         });
-        this.instancedMesh.instanceMatrix.needsUpdate = true;
         this.instancedMesh.instanceColor.needsUpdate = true;
+    }
+
+    updatePos() {
+        let i = 0;
+        this.tiles.forEach(tile => {
+            if (!tile.cell.isWater) {
+                this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
+            }
+            i++;
+        });
+        this.instancedMesh.instanceMatrix.needsUpdate = true;
     }
 
     dispose() {

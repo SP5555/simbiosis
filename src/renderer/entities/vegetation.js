@@ -9,7 +9,7 @@ export default class Vegetation {
         this.biome = cell.vegetation.biome;
         this.position = position;
 
-        this.baseColor = 0x00cc00;
+        this.baseColor = new THREE.Color().setHex(0x00cc00);
 
         this.rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
         this.TSRMatrix = new THREE.Matrix4();
@@ -45,6 +45,6 @@ export default class Vegetation {
         this.TSRMatrix = TRSMatrix;
 
         let cf = (1 - 0.8 * veg);
-        this.currentColor = new THREE.Color().setHex(this.baseColor).multiplyScalar(cf);
+        this.currentColor = this.baseColor.clone().multiplyScalar(cf);
     }
 }
