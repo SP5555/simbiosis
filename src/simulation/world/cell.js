@@ -51,8 +51,9 @@ export default class Cell {
         if (Math.abs(this.temperature - this.lastRecordedTemp) > 0.1) {
             this.lastRecordedTemp = this.temperature;
             this.tempChanged = true;
+        } else {
+            this.tempChanged = false;
         }
-        this.tempChanged = false;
     }
 
     classifyBiome() {

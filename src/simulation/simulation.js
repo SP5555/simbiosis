@@ -18,6 +18,7 @@ export default class Simulation {
     }
 
     generateMap(width, height, expand, seed=null) {
+        this.time = 0;
         this.map = MapGenerator.generate(width, height, expand, seed, this.baseTemp);
     }
 

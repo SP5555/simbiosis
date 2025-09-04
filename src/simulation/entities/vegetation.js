@@ -2,18 +2,17 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        growthRate: 0.012,      // change rate (also handles death)
+        changeRate: 0.014,      // sensitivity to logistic growth equation 
+        max: 0.5,               // max vegetation allowed (variable)
 
         extThreshold: 0.10,     // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
         extProb: 0.01,          // per-tick probability of vegetation dying
 
-        sprThreshold: 0.5,      // above this threshold, spread timer starts
+        sprThreshold: 0.3,      // above this threshold, spread timer starts
         sprInterval: 300,       // after this amount of ticks, spread becomes possible
         sprProb: 0.01,          // per-tick probability of spreading to random neighbor
         sprAmt: 0.01,           // spread this amount of vegetation
-
-        max: 0.5,               // max vegetation allowed 
     };
 
     constructor(temperature, moisture, biome="default", value=0, options = {}) {
@@ -31,7 +30,7 @@ export default class Vegetation {
     step(cell, map) {
         if (this.value <= 0) return;
         if (cell.tempChanged) {
-            this.calcParams(cell.temperature, cell.moisture);
+            Object.assign(this, this.calcParams(cell.temperature, cell.moisture));
         }
 
         this.handleExtinction();
@@ -43,13 +42,7 @@ export default class Vegetation {
 
     handleGrowth(cell) {
         let P = this.value;
-        let growthFactor = Math.max(0, this.growthRate);
-        
-        P += growthFactor * P * (1 - P / (this.max + 1e-5));
-        // die threshold for poor conditions
-        if (cell.temperature < -4) P -= 0.002;
-
-
+        P += this.changeRate * P * (1 - P / (this.max + 1e-5));
         this.value = P;
     }
 
@@ -98,10 +91,8 @@ export default class Vegetation {
 
     calcParams(t, m) {
         let G = this.gauss;
-        let max        = (1.00 + Math.min(0, 0.0350 * (t - 26)) - Math.max(0, 0.0500 * (t - 32))) * G(m, 1, 0.5);
-        let growthRate = (0.01 + Math.min(0, 0.0005 * (t - 20)) - Math.max(0, 0.0006 * (t - 35))) * G(m, 1, 0.4);
-
-        return { growthRate: Math.max(0, growthRate), max: max }
+        let max = (1 + Math.min(0, 0.08 * (t - 10)) - Math.max(0, 0.0500 * (t - 32))) * G(m, 1, 0.5);
+        return { max: Math.max(0, max) }
     }
 
     gauss(x, opt, sigma) {
@@ -110,26 +101,16 @@ export default class Vegetation {
 
     getBiomeVegetationDefaults() {
         switch (this.biome) {
-            case "Tundra":
-                return { growthRate: 0.003, max: 0.10 };
-            case "Steppe":
-                return { growthRate: 0.004, max: 0.15 }
-            case "Desert":
-                return { growthRate: 0.005, max: 0.20 };
-            case "Taiga":
-                return { growthRate: 0.014, max: 0.20 };
-            case "Temperate":
-                return { growthRate: 0.016, max: 0.30 };
-            case "Savanna":
-                return { growthRate: 0.018, max: 0.40 };
-            case "Boreal":
-                return { growthRate: 0.016, max: 0.60 };
-            case "Forest": 
-                return { growthRate: 0.018, max: 0.75 };
-            case "Rainforest":
-                return { growthRate: 0.020, max: 0.90 };
-            default:
-                return { growthRate: 0.000, max: 0.00 };
+            case "Tundra":      return { max: 0.10 };
+            case "Steppe":      return { max: 0.15 }
+            case "Desert":      return { max: 0.20 };
+            case "Taiga":       return { max: 0.20 };
+            case "Temperate":   return { max: 0.30 };
+            case "Savanna":     return { max: 0.40 };
+            case "Boreal":      return { max: 0.60 };
+            case "Forest":      return { max: 0.75 };
+            case "Rainforest":  return { max: 0.90 };
+            default:            return { max: 0.00 };
         }
     }
 }
