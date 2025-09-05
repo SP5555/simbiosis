@@ -13,7 +13,7 @@ export default class GuiManager {
     buildGUI() {
         // --- terrain filter ---
         const terrainFolder = this.gui.addFolder("Terrain Filter");
-        const terrainFilters = ["Biome", "Height", "Temperature", "Moisture"];
+        const terrainFilters = ["Biome", "Elevation", "Elevation Gradient", "Temperature", "Moisture"];
         const terrainParams = {
             filter: "Biome",
             apply: () => this.renderer.mapFilterChange(terrainParams.filter)

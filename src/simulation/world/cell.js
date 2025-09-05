@@ -5,11 +5,12 @@ import Vegetation from "../entities/vegetation.js";
 const SEA_LEVEL = 0.0;
 
 export default class Cell {
-    constructor(x, y, elevation, moisture, baseTemp) {
+    constructor(x, y, elevation, moisture, baseTemp, gradient) {
         this.x = x;
         this.y = y;
         this.elevation = elevation;
         this.moisture = moisture;
+        this.gradient = gradient;
         this.isWater = elevation < SEA_LEVEL;
         
         this.temperature = this.elevationToTemp(baseTemp, elevation);

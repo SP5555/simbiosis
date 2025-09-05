@@ -3,11 +3,11 @@
 import * as THREE from 'three';
 
 export default class TileManager {    
-    constructor(tiles, tileWidth, tileHeight, count) {
+    constructor(tiles, tileWidth, tileHeight) {
         this.tiles = tiles;
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
-        this.count = count;
+        this.count = this.tiles.length;
     }
 
     buildInstancedMeshes() {
@@ -17,27 +17,26 @@ export default class TileManager {
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
 
-        let i = 0;
-        this.tiles.forEach(tile => {
-            // pos
-            this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
-
-            // color
-            let color = tile.currentColor;
-            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-
-            i++;
-        });
+        this.updatePos();
     }
 
     updateInstancedMeshes() {
         this.updateColors();
     }
+    
+    updatePos() {
+        let i = 0;
+        this.tiles.forEach(tile => {
+            this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
+            i++;
+        });
+        this.instancedMesh.instanceMatrix.needsUpdate = true;
+    }
 
     updateColors() {
         let i = 0;
         this.tiles.forEach(tile => {
-            let color = tile.currentColor;
+            let color = tile.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             i++;
         });

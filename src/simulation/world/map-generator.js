@@ -1,5 +1,6 @@
 'use strict'
 
+import * as THREE from 'three';
 import Cell from './cell.js';
 import Map from './map.js';
 import RandomEngine from '../utils/random.js';
@@ -40,7 +41,8 @@ export default class MapGenerator {
         }
         // this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
 
-        return this.constructMap(elevationMap, moistureMap, baseTemp);
+        let { gradX, gradY } = this.computeGradient(elevationMap);
+        return this.constructMap(elevationMap, moistureMap, baseTemp, { gradX, gradY });
     }
 
     static moistureAdjustByElevation(moistureMap, elevationMap, seaLevel = 0) {
@@ -57,6 +59,26 @@ export default class MapGenerator {
                 moistureMap[y][x] = newMoisture;
             }
         }
+    }
+
+    static computeGradient(elevationMap) {
+        let width = elevationMap.metaData.width;
+        let height = elevationMap.metaData.height;
+        let gradX = Array.from({ length: height }, () => Array(width).fill(0));
+        let gradY = Array.from({ length: height }, () => Array(width).fill(0));
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let left  = x > 0 ? elevationMap[y][x-1] : elevationMap[y][x];
+                let right = x < width-1 ? elevationMap[y][x+1] : elevationMap[y][x];
+                let up    = y > 0 ? elevationMap[y-1][x] : elevationMap[y][x];
+                let down  = y < height-1 ? elevationMap[y+1][x] : elevationMap[y][x];
+
+                gradX[y][x] = (right - left) / 2;
+                gradY[y][x] = (down - up) / 2;
+            }
+        }
+        return { gradX, gradY };
     }
     
     static random2D(width, height, low, high) {
@@ -136,18 +158,22 @@ export default class MapGenerator {
         return totalValue / neighborCount;
     }
     
-    static constructMap(elevationMap, moistureMap, baseTemp) {
+    static constructMap(elevationMap, moistureMap, baseTemp, gradientMaps) {
+        const { gradX, gradY } = gradientMaps;
         let cells = [];
-        for (let y = 0; y < elevationMap.metaData.height; y++) {
+
+        let width = elevationMap.metaData.width;
+        let height = elevationMap.metaData.height;
+        for (let y = 0; y < height; y++) {
             const row = [];
-            for (let x = 0; x < elevationMap.metaData.width; x++) {
+            for (let x = 0; x < width; x++) {
                 const elevation = elevationMap[y][x];
                 const moisture = moistureMap[y][x];
-                row.push(new Cell(x, y, elevation, moisture, baseTemp));
+                const gradient = new THREE.Vector2(gradX[y][x], gradY[y][x]);
+                row.push(new Cell(x, y, elevation, moisture, baseTemp, gradient));
             }
             cells.push(row);
         }
-        let mapObj = new Map(elevationMap.metaData.width, elevationMap.metaData.height, cells);
-        return mapObj;
+        return new Map(width, height, cells);
     }
 }

@@ -7,6 +7,11 @@
     <style>
         html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
         canvas { display:block; }
+        #info { position: absolute; bottom: 10px; right: 10px; background: rgba(255, 255, 255, 0.2);
+            padding: 10px 10px; border-radius: 20px;
+            font-family: consolas; z-index: 10; }
+        #info a { text-decoration: none; color: white; transition: 0.4s; }
+        #info a:hover{ color: aqua; }
     </style>
 
     <!-- "three": "/node_modules/three/build/three.module.js", -->
@@ -23,6 +28,9 @@
 
 <body>
     <canvas id="canvas00"></canvas>
+    <div id="info">
+        <a href="https://github.com/SP5555/simbiosis/">&lt;/&gt;</a>
+    </div>
     <script type="module" src="src/main.js"></script>
 </body>
 

@@ -41,7 +41,7 @@ export default class Renderer {
         this.buildTiles();
         this.buildInstancedMeshes();
     }
-    
+
     buildTiles() {
         const map = this.simulation.map;
         const maxMapWidth = 80, maxMapHeight = 60;
@@ -50,30 +50,30 @@ export default class Renderer {
         const mapHeight = Math.floor(map.height * scale);
         this.tileWidth = mapWidth / map.width;
         this.tileHeight = mapHeight / map.height;
-        
+
         this.tiles = [];
-        
+
         for (let x = 0; x < map.width; x++) {
             for (let y = 0; y < map.height; y++) {
                 const cell = map.getCell(x, y);
-                const tile = this.createTile(cell, this.tileWidth, this.tileHeight, mapWidth, mapHeight, scale);
-                
+
+                let position = new THREE.Vector3(
+                    cell.x * this.tileWidth + this.tileWidth / 2 - mapWidth / 2,
+                    Math.max(cell.elevation, 0) * scale / 1000,
+                    cell.y * this.tileHeight + this.tileHeight / 2 - mapHeight / 2,
+                )
+
+                const tile = cell.isWater 
+                    ? new WaterTile(cell, position) 
+                    : new LandTile(cell, position);
                 this.tiles.push(tile);
             }
         }
     }
-    
-    createTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale) {
-        if (cell.isWater) return new WaterTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
-        else return new LandTile(cell, tileWidth, tileHeight, mapWidth, mapHeight, scale);
-    }
-    
-    buildInstancedMeshes() {
-        const map = this.simulation.map;
-        const count = map.width * map.height;
 
-        this.tileManager = new TileManager(this.tiles, this.tileWidth, this.tileHeight, count);
-        this.vegeManager = new VegetationManager(this.tiles, this.tileWidth, this.tileHeight, count);
+    buildInstancedMeshes() {
+        this.tileManager = new TileManager(this.tiles, this.tileWidth, this.tileHeight);
+        this.vegeManager = new VegetationManager(this.tiles, this.tileWidth, this.tileHeight);
 
         this.tileManager.buildInstancedMeshes();
         this.vegeManager.buildInstancedMeshes();
