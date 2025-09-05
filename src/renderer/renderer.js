@@ -64,9 +64,9 @@ export default class Renderer {
                     cell.y * this.tileHeight + this.tileHeight / 2 - mapHeight / 2,
                 )
 
-                const tile = cell.isWater 
-                    ? new WaterTile(cell, position) 
-                    : new LandTile(cell, position);
+                const tile = cell.isWater
+                    ? new WaterTile(cell, position, scale) 
+                    : new LandTile(cell, position, scale);
                 this.tiles.push(tile);
             }
         }

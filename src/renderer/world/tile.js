@@ -14,9 +14,10 @@ import {
 import { SineAnimation } from '../animation/animation-state.js';
 
 class Tile {
-    constructor(cell, position) {
+    constructor(cell, position, scale) {
         this.cell = cell;
         this.position = position;
+        this.scale = scale;
 
         this.TSRMatrix = new THREE.Matrix4();
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y, this.position.z);
@@ -39,15 +40,19 @@ class Tile {
         this.currentFilter = filterName;
     }
 
-    updateColor(dt) {
+    updatePos() {
+        throw new Error("updatePos() must be implemented in subclass");
+    }
+
+    updateColor() {
         // this function MUST set this.renderColor or it will appear black
         throw new Error("updateColor() must be implemented in subclass");
     }
 }
 
 export class WaterTile extends Tile {
-    constructor(cell, position) {
-        super(cell, position);
+    constructor(cell, position, scale) {
+        super(cell, position, scale);
 
         this.colors.baseHex = seaDepthToColor(this.cell.elevation);
         this.colors.base = hexToColor(this.colors.baseHex);
@@ -56,7 +61,7 @@ export class WaterTile extends Tile {
 
         this.animation = new SineAnimation({
             speed: -1,
-            amplitude: 0.2,
+            amplitude: 0.25,
             phase: (cell.elevation / 250) + Math.random() * 2,
         })
     }
@@ -75,7 +80,7 @@ export class WaterTile extends Tile {
     }
 
     updatePos() {
-        const wobble = this.animation.value() * 0.5;
+        const wobble = this.animation.value() * this.scale;
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);
     }
 
@@ -85,8 +90,8 @@ export class WaterTile extends Tile {
 }
 
 export class LandTile extends Tile {
-    constructor(cell, position) {
-        super(cell, position);
+    constructor(cell, position, scale) {
+        super(cell, position, scale);
 
         this.vegetation = new Vegetation(cell, this.position);
 
@@ -97,7 +102,7 @@ export class LandTile extends Tile {
     }
 
     updateAnimationState(dt) {
-        this.updateColor(dt);
+        this.updateColor();
         this.vegetation.updateAnimationState(dt);
     }
 
