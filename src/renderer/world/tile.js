@@ -11,6 +11,7 @@ import {
     seaDepthToColor,
     waterTileColor,
 } from './colors/tile-color-core.js';
+import { SineAnimation } from '../animation/animation-state.js';
 
 class Tile {
     constructor(cell, position) {
@@ -28,13 +29,6 @@ class Tile {
             gradient:   new THREE.Color(0, 0, 0),
         };
         this.renderColor = new THREE.Color(0, 0, 0);
-
-        this.animation = {
-            phase:      0,
-            speed:      0,
-            amplitude:  0,
-            elapsed:    0,
-        };
     }
 
     updateAnimationState(dt) {
@@ -60,17 +54,33 @@ export class WaterTile extends Tile {
         this.colors.elevation = hexToColor(elevationToColor(this.cell.elevation));
         this.colors.gradient = gradientToColor(this.cell.gradient);
 
-        this.animation.phase = (cell.elevation / 250) + Math.random() * 2;
-        this.animation.speed = -1;
-        this.animation.amplitude = 0.2;
+        this.animation = new SineAnimation({
+            speed: -1,
+            amplitude: 0.2,
+            phase: (cell.elevation / 250) + Math.random() * 2,
+        })
     }
 
     updateAnimationState(dt) {
-        this.updateColor(dt);
+        this.animation.update(dt);
+        this.updatePos();
+        this.updateColor();
     }
 
-    updateColor(dt) {
-        this.renderColor = waterTileColor(this, dt);
+    updateAnimationProperties(dt) {        
+        const anim = this.animation;
+        anim.elapsed += anim.speed * dt;
+        if (anim.elapsed > TWO_PI) anim.elapsed -= TWO_PI;
+        if (anim.elapsed < 0) anim.elapsed += TWO_PI;
+    }
+
+    updatePos() {
+        const wobble = this.animation.value() * 0.5;
+        this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);
+    }
+
+    updateColor() {
+        this.renderColor = waterTileColor(this);
     }
 }
 
@@ -91,7 +101,7 @@ export class LandTile extends Tile {
         this.vegetation.updateAnimationState(dt);
     }
 
-    updateColor(dt) {
+    updateColor() {
         this.renderColor = landTileColor(this);
     }
 }

@@ -4,13 +4,11 @@ import * as THREE from 'three';
 import { hexToColor, interpolateColorStops, lerpColorHex } from '../../utils/color-utils.js';
 import { BIOME_COLOR_MAP, ELEVATION_COLOR_STOPS, SEA_DEPTH_COLOR_STOPS, TEMPERATURE_COLOR_STOPS } from './tile-color-data.js';
 
-const TWO_PI = Math.PI * 2;
-
-export function waterTileColor(tile, dt) {
+export function waterTileColor(tile) {
     let f = tile.currentFilter;
     if (f == "Elevation")
         return tile.colors.elevation;
-    return waterWobbleColor(tile, dt);
+    return waterWobbleColor(tile);
 }
 
 export function landTileColor(tile) {
@@ -28,12 +26,8 @@ export function landTileColor(tile) {
     return hexToColor(0xff0000);
 }
 
-function waterWobbleColor(tile, dt) {
+function waterWobbleColor(tile) {
     const anim = tile.animation;
-    anim.elapsed += anim.speed * dt;
-    if (anim.elapsed > TWO_PI) anim.elapsed -= TWO_PI;
-    if (anim.elapsed < 0) anim.elapsed += TWO_PI;
-
     const wobble = Math.sin(anim.elapsed + anim.phase) * anim.amplitude;
     return tile.colors.base.clone().multiplyScalar(1 + wobble);
 }

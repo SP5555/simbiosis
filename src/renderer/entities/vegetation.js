@@ -25,7 +25,7 @@ export default class Vegetation {
 
     updateAnimationState(dt) {
         this.updateValue();
-        this.updateTransform();
+        this.updatePos();
         this.updateColor();
     }
 
@@ -33,7 +33,7 @@ export default class Vegetation {
         this.value = this.cell.vegetation.value;
     }
 
-    updateTransform() {
+    updatePos() {
         const veg = Math.min(this.value, 1);
         const s = 0.2 + 0.8 * veg;
         const scaleMatrix = new THREE.Matrix4().makeScale(s, s, 1);

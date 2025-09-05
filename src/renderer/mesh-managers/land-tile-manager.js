@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 
-export default class VegetationManager {
+export default class LandTileManager {    
     constructor(tiles, tileWidth, tileHeight) {
         this.tiles = tiles.filter(tile => !tile.cell.isWater);
         this.tileWidth = tileWidth;
@@ -11,22 +11,23 @@ export default class VegetationManager {
     }
 
     buildInstancedMeshes() {
-        const geometry = new THREE.PlaneGeometry(0.75 * this.tileWidth, 0.75 * this.tileHeight);
+        const geometry = new THREE.BoxGeometry(this.tileWidth, 1, this.tileHeight, 1, 1, 1);
         const material = new THREE.MeshStandardMaterial();
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
+
+        this.updatePos();
     }
 
     updateInstancedMeshes() {
-        this.updatePos();
         this.updateColors();
     }
 
     updatePos() {
         let i = 0;
         this.tiles.forEach(tile => {
-            this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
+            this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
             i++;
         });
         this.instancedMesh.instanceMatrix.needsUpdate = true;
@@ -35,7 +36,7 @@ export default class VegetationManager {
     updateColors() {
         let i = 0;
         this.tiles.forEach(tile => {
-            let color = tile.vegetation.renderColor;
+            let color = tile.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             i++;
         });
@@ -53,4 +54,5 @@ export default class VegetationManager {
     getDrawable() {
         return this.instancedMesh;
     }
+
 }

@@ -2,9 +2,9 @@
 
 import * as THREE from 'three';
 
-export default class TileManager {    
+export default class WaterTileManager {    
     constructor(tiles, tileWidth, tileHeight) {
-        this.tiles = tiles;
+        this.tiles = tiles.filter(tile => tile.cell.isWater);
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
         this.count = this.tiles.length;
@@ -17,13 +17,13 @@ export default class TileManager {
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
 
-        this.updatePos();
-    }
-
-    updateInstancedMeshes() {
-        this.updateColors();
     }
     
+    updateInstancedMeshes() {
+        this.updatePos();
+        this.updateColors();
+    }
+
     updatePos() {
         let i = 0;
         this.tiles.forEach(tile => {

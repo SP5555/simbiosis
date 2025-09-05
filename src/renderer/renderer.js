@@ -2,8 +2,9 @@
 
 import * as THREE from 'three';
 import { LandTile, WaterTile } from './world/tile.js';
-import TileManager from './mesh-managers/tile-manager.js';
 import VegetationManager from './mesh-managers/vegetation-manager.js';
+import LandTileManager from './mesh-managers/land-tile-manager.js';
+import WaterTileManager from './mesh-managers/water-tile-manager.js';
 
 export default class Renderer {
     constructor(simulation) {
@@ -72,13 +73,16 @@ export default class Renderer {
     }
 
     buildInstancedMeshes() {
-        this.tileManager = new TileManager(this.tiles, this.tileWidth, this.tileHeight);
+        this.landTileManager = new LandTileManager(this.tiles, this.tileWidth, this.tileHeight);
+        this.waterTileManager = new WaterTileManager(this.tiles, this.tileWidth, this.tileHeight);
         this.vegeManager = new VegetationManager(this.tiles, this.tileWidth, this.tileHeight);
 
-        this.tileManager.buildInstancedMeshes();
+        this.landTileManager.buildInstancedMeshes();
+        this.waterTileManager.buildInstancedMeshes();
         this.vegeManager.buildInstancedMeshes();
 
-        this.scene.add(this.tileManager.getDrawable());
+        this.scene.add(this.landTileManager.getDrawable());
+        this.scene.add(this.waterTileManager.getDrawable());
         this.scene.add(this.vegeManager.getDrawable());
     }
     
@@ -89,10 +93,12 @@ export default class Renderer {
     }
 
     clearScene() {
-        this.scene.remove(this.tileManager.getDrawable());
+        this.scene.remove(this.landTileManager.getDrawable());
+        this.scene.remove(this.waterTileManager.getDrawable());
         this.scene.remove(this.vegeManager.getDrawable());
         // release GPU memory
-        this.tileManager.dispose();
+        this.landTileManager.dispose();
+        this.waterTileManager.dispose();
         this.vegeManager.dispose();
     }
 
@@ -115,7 +121,8 @@ export default class Renderer {
     }
 
     updateInstancedMeshes() {
-        this.tileManager.updateInstancedMeshes();
+        this.landTileManager.updateInstancedMeshes();
+        this.waterTileManager.updateInstancedMeshes();
         this.vegeManager.updateInstancedMeshes();
     }
 
