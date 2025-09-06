@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import Vegetation from '../entities/vegetation.js';
 import { hexToColor } from '../utils/color-utils.js';
 import {
-    biomeToColor,
+    biomeFertilityToColor,
     elevationToColor,
     gradientToColor,
     landTileColor,
@@ -95,7 +95,7 @@ export class LandTile extends Tile {
 
         this.vegetation = new Vegetation(cell, this.position);
 
-        this.colors.baseHex = biomeToColor(this.cell.biome);
+        this.colors.baseHex = biomeFertilityToColor(this.cell.biome, this.cell.fertility);
         this.colors.base = hexToColor(this.colors.baseHex);
         this.colors.elevation = hexToColor(elevationToColor(this.cell.elevation));
         this.colors.gradient = gradientToColor(this.cell.gradient);

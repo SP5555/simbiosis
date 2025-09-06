@@ -17,7 +17,7 @@ export default class MapGenerator {
             this.randomEngine = new RandomEngine(Math.random().toString());
         }
 
-        // ===== elevation =====
+        // ===== base elevation =====
         let elevationMap = this.random2D(width, height, -2400, 3000);
         this.smooth(elevationMap);
         this.amplify(elevationMap, 0.3, 0.0);
@@ -27,38 +27,50 @@ export default class MapGenerator {
             this.smooth(elevationMap, 0.6);
             this.amplify(elevationMap, 0.2, 0.0);
         }
-        for ( let i = 0; i < 4; i++) this.smooth(elevationMap, 0.5);
 
-        // ===== moisture =====
-        let moistureMap = this.random2D(width, height, 0, 1);
-        this.smooth(moistureMap);
-        this.amplify(moistureMap, 0.1, 0.5);
+        // pull elevation to another random smoother elevation by some amount
+        let macroNoise = this.random2D(width, height, -3000, 3600);
+        this.smooth(macroNoise);
+        this.amplify(macroNoise, 0.1, 0);
         for ( let i = 0; i < expand; i++ ) {
-            this.expand4x(moistureMap);
-            this.applyNoise(moistureMap, 0.4);
-            this.smooth(moistureMap, 0.6);
-            this.amplify(moistureMap, 0.2, 0.5);
+            this.expand4x(macroNoise);
+            this.applyNoise(macroNoise, 2400);
+            this.smooth(macroNoise, 0.6);
+            this.amplify(macroNoise, 0.2, 0);
         }
-        // this.moistureAdjustByElevation(moistureMap, elevationMap, 0.4);
+        for ( let i = 0; i < 12; i++ ) this.smooth(macroNoise, 1.0);
+        this.amplify(macroNoise, 0.4, 0);
+        this.pullToCenterByMap(elevationMap, macroNoise, 0.4);
+
+        // variable smooth
+        macroNoise = this.random2D(width, height, 0, 1.0);
+        this.smooth(macroNoise);
+        this.amplify(macroNoise, 0.1, 0.5);
+        for ( let i = 0; i < expand; i++ ) {
+            this.expand4x(macroNoise);
+            this.applyNoise(macroNoise, 0.2);
+            this.smooth(macroNoise, 0.8);
+            this.amplify(macroNoise, 0.2, 0.5);
+        }
+        for ( let i = 0; i < 8; i++ ) this.smooth(macroNoise, 1.0);
+        for ( let i = 0; i < 4; i++ ) this.smoothByMap(elevationMap, macroNoise);
+
+        // final uniform smooth
+        for ( let i = 0; i < 3; i++ ) this.smooth(elevationMap, 0.4);
+
+        // ===== ground fertility =====
+        let fertilityMap = this.random2D(width, height, 0, 1.0);
+        this.smooth(fertilityMap);
+        this.amplify(fertilityMap, 0.1, 0.5);
+        for ( let i = 0; i < expand; i++ ) {
+            this.expand4x(fertilityMap);
+            this.applyNoise(fertilityMap, 0.4);
+            this.smooth(fertilityMap, 0.6);
+            this.amplify(fertilityMap, 0.2, 0.5);
+        }
 
         let { gradX, gradY } = this.computeGradient(elevationMap);
-        return this.constructMap(elevationMap, moistureMap, baseTemp, { gradX, gradY });
-    }
-
-    static moistureAdjustByElevation(moistureMap, elevationMap, seaLevel = 0) {
-        for (let y = 0; y < moistureMap.metaData.height; y++) {
-            for (let x = 0; x < moistureMap.metaData.width; x++) {
-                const h = elevationMap[y][x];
-                let newMoisture;
-                if (h < seaLevel) {
-                    newMoisture = 1.0;
-                } else {
-                    let t = (h - seaLevel) / (1 - seaLevel);
-                    newMoisture = moistureMap[y][x] * (1.0 - 0.5 * t);
-                }
-                moistureMap[y][x] = newMoisture;
-            }
-        }
+        return this.constructMap(elevationMap, fertilityMap, baseTemp, { gradX, gradY });
     }
 
     static computeGradient(elevationMap) {
@@ -92,6 +104,31 @@ export default class MapGenerator {
         }
         eMap.metaData = { width, height };
         return eMap;
+    }
+
+    static pullToCenterByMap(map, centerMap, strength = 1.0) {
+        const height = map.metaData.height;
+        const width = map.metaData.width;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                map[y][x] += (centerMap[y][x] - map[y][x]) * strength;
+            }
+        }
+    }
+
+    static smoothByMap(map, strengthMap) {
+        const newMap = [];
+        for (let y = 0; y < map.metaData.height; y++) {
+            const row = [];
+            for (let x = 0; x < map.metaData.width; x++) {
+                let oldVal = map[y][x];
+                const avg = oldVal + strengthMap[y][x] * (this.ao9(map, x, y) - oldVal);
+                row.push(avg);
+            }
+            newMap.push(row);
+        }
+        map.splice(0, this.height, ...newMap);
     }
 
     static smooth(map, strength = 1.0) {
@@ -158,7 +195,7 @@ export default class MapGenerator {
         return totalValue / neighborCount;
     }
     
-    static constructMap(elevationMap, moistureMap, baseTemp, gradientMaps) {
+    static constructMap(elevationMap, fertilityMap, baseTemp, gradientMaps) {
         const { gradX, gradY } = gradientMaps;
         let cells = [];
 
@@ -168,9 +205,9 @@ export default class MapGenerator {
             const row = [];
             for (let x = 0; x < width; x++) {
                 const elevation = elevationMap[y][x];
-                const moisture = moistureMap[y][x];
+                const fertility = fertilityMap[y][x];
                 const gradient = new THREE.Vector2(gradX[y][x], gradY[y][x]);
-                row.push(new Cell(x, y, elevation, moisture, baseTemp, gradient));
+                row.push(new Cell(x, y, elevation, fertility, baseTemp, gradient));
             }
             cells.push(row);
         }

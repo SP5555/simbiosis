@@ -5,11 +5,11 @@ import Vegetation from "../entities/vegetation.js";
 const SEA_LEVEL = 0.0;
 
 export default class Cell {
-    constructor(x, y, elevation, moisture, baseTemp, gradient) {
+    constructor(x, y, elevation, fertility, baseTemp, gradient) {
         this.x = x;
         this.y = y;
         this.elevation = elevation;
-        this.moisture = moisture;
+        this.fertility = fertility;
         this.gradient = gradient;
         this.isWater = elevation < SEA_LEVEL;
         
@@ -21,9 +21,9 @@ export default class Cell {
         this.biome = this.classifyBiome();
         this.vegetation = null;
         if (this.isWater) {
-            this.vegetation = new Vegetation(this.temperature, this.moisture, this.biome, 0);
+            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, 0);
         } else {
-            this.vegetation = new Vegetation(this.temperature, this.moisture, this.biome, Math.random() < 0.05 ? 0.02 : 0);
+            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, Math.random() < 0.05 ? 0.02 : 0);
         }
     }
 
@@ -61,13 +61,13 @@ export default class Cell {
         if (this.isWater) return "Ocean";
 
         const t = this.temperature;
-        const m = this.moisture;
+        const f = this.fertility;
 
-        if (m < 0.2) {
+        if (f < 0.2) {
             if (t < 4)  return "Tundra";
             if (t < 26) return "Steppe";
                         return "Desert";
-        } else if (m < 0.8) {
+        } else if (f < 0.8) {
             if (t < 4)  return "Taiga";
             if (t < 30) return "Temperate";
                         return "Savanna";

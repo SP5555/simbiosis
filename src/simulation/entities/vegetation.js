@@ -15,7 +15,7 @@ export default class Vegetation {
         sprAmt: 0.01,           // spread this amount of vegetation
     };
 
-    constructor(temperature, moisture, biome="default", value=0, options = {}) {
+    constructor(temperature, fertility, biome="default", value=0, options = {}) {
         this.value = value;
         this.deathTicks = 0;
         this.spreadTicks = 0;
@@ -23,24 +23,24 @@ export default class Vegetation {
         this.biome = biome;
         Object.assign(this, Vegetation.DEFAULTS,
             // this.getBiomeVegetationDefaults(),
-            this.calcParams(temperature, moisture),
+            this.calcParams(temperature, fertility),
             options);
     }
 
     step(cell, map) {
         if (this.value <= 0) return;
         if (cell.tempChanged) {
-            Object.assign(this, this.calcParams(cell.temperature, cell.moisture));
+            Object.assign(this, this.calcParams(cell.temperature, cell.fertility));
         }
 
         this.handleExtinction();
-        this.handleGrowth(cell);
+        this.handleGrowth();
         this.handleSpread(cell, map);
 
         this.value = Math.max(0, this.value);
     }
 
-    handleGrowth(cell) {
+    handleGrowth() {
         let P = this.value;
         P += this.changeRate * P * (1 - P / (this.max + 1e-5));
         this.value = P;
@@ -89,9 +89,9 @@ export default class Vegetation {
         return exceed;
     }
 
-    calcParams(t, m) {
+    calcParams(t, f) {
         let G = this.gauss;
-        let max = (1 + Math.min(0, 0.08 * (t - 10)) - Math.max(0, 0.0500 * (t - 32))) * G(m, 1, 0.5);
+        let max = (1 + Math.min(0, 0.06 * (t - 15)) - Math.max(0, 0.0500 * (t - 32))) * G(f, 1, 0.5);
         return { max: Math.max(0, max) }
     }
 

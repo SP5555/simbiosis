@@ -5,35 +5,54 @@ import Input from '../input/input.js';
 import Renderer from '../renderer/renderer.js';
 import Simulation from '../simulation/simulation.js';
 import GuiManager from '../gui/gui-manager.js';
+import HudManager from '../hud/hud-manager.js';
 
 export default class App {
     constructor() {
         this.input = new Input();
         this.simulation = new Simulation();
-        this.renderer = new Renderer(this.simulation);
-        this.guiManager = new GuiManager(this.renderer, this.simulation);
+        this.renderer = new Renderer(this.simulation, this.input);
+        this.guiManager = new GuiManager();
+        this.hud = new HudManager();
     }
 
     start() {
+        this.guiManager.emitInitialEvents();
+
         const simSpeed = 60; // 60 steps per second
         const fixedDt = 1 / simSpeed;
-        let accumulator = 0;
+        let simAccumulator = 0;
+
+        let overlayAccumulator = 0;
+        let overlayFrameCount = 0;
+
         let lastTime = performance.now();
         
         const loop = (currentTime) => {
             const dt = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
-            
-            accumulator += dt;
-            while (accumulator >= fixedDt) {
+
+            simAccumulator += dt;
+            overlayAccumulator += dt;
+            overlayFrameCount++;
+
+            while (simAccumulator >= fixedDt) {
                 this.simulation.step();
-                accumulator -= fixedDt;
+                simAccumulator -= fixedDt;
             }
-            
-            this.renderer.render(this.input, dt);
+
+            this.renderer.render(dt);
+
+            // update overlay FPS 8 times/sec
+            if (overlayAccumulator >= 0.125) {
+                this.hud.updateFPS(overlayAccumulator, overlayFrameCount);
+                overlayAccumulator = 0;
+                overlayFrameCount = 0;
+            }
+
             requestAnimationFrame(loop);
         };
-        
+
         requestAnimationFrame(loop);
     }
 }

@@ -5,42 +5,58 @@ import { LandTile, WaterTile } from './world/tile.js';
 import VegetationManager from './mesh-managers/vegetation-manager.js';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
+import { eventBus } from '../utils/event-emitters.js';
+import { EVENTS } from '../utils/events.js';
 
 export default class Renderer {
-    constructor(simulation) {
-        this.buildScene(simulation);
+    constructor(simulation, input) {
+        this.input = input;
+        this.simulation = simulation;
+        this.initializeScene();
     }
 
-    buildScene(simulation) {
+    initializeScene() {
         // ===== scene setup =====
-        // Scene
+        // scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x101010);
 
-        // Camera
+        // camera
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.cameraPosition = new THREE.Vector3(0, 60, 40);
         this.cameraLookAt = new THREE.Vector3(0, 0, 4);
         this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
         this.camera.lookAt(0, 0, 4);
 
-        // Renderer
+        // renderer
         const canvas = document.getElementById('canvas00');
         this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Light
+        // light
         const light = new THREE.DirectionalLight(0xffffff, 4);
         light.position.set(0, 80, 20);
         this.scene.add(light);
 
+        // event subscriptions
         window.addEventListener('resize', () => this.onResize(), false);
+        eventBus.on(EVENTS.MAP_GENERATED, (map) => {
+            this.rebuildScene();
+        });
+        eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) => {
+            this.mapFilterChange(filterName);
+        });
+
+        // mesh managers
+        this.landTileManager = new LandTileManager();
+        this.waterTileManager = new WaterTileManager();
+        this.vegeManager = new VegetationManager();
 
         // ===== simulation setup =====
-        this.simulation = simulation;
-        this.buildTiles();
-        this.buildInstancedMeshes();
+        if (this.simulation.map) {
+            this.buildScene();
+        }
     }
 
     buildTiles() {
@@ -73,9 +89,9 @@ export default class Renderer {
     }
 
     buildInstancedMeshes() {
-        this.landTileManager = new LandTileManager(this.tiles, this.tileWidth, this.tileHeight);
-        this.waterTileManager = new WaterTileManager(this.tiles, this.tileWidth, this.tileHeight);
-        this.vegeManager = new VegetationManager(this.tiles, this.tileWidth, this.tileHeight);
+        this.landTileManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
+        this.waterTileManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
+        this.vegeManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
 
         this.landTileManager.buildInstancedMeshes();
         this.waterTileManager.buildInstancedMeshes();
@@ -85,11 +101,15 @@ export default class Renderer {
         this.scene.add(this.waterTileManager.getDrawable());
         this.scene.add(this.vegeManager.getDrawable());
     }
+
+    buildScene() {
+        this.buildTiles();
+        this.buildInstancedMeshes();
+    }
     
     rebuildScene() {
         this.clearScene();
-        this.buildTiles();
-        this.buildInstancedMeshes();
+        this.buildScene();
     }
 
     clearScene() {
@@ -102,14 +122,14 @@ export default class Renderer {
         this.vegeManager.dispose();
     }
 
-    render(input, dt) {
-        this.updateScene(input, dt);
+    render(dt) {
+        this.updateScene(dt);
         
         this.renderer.render(this.scene, this.camera);
     }
     
-    updateScene(input, dt) {
-        this.updateCamera(input);
+    updateScene(dt) {
+        this.updateCamera();
         this.updateTiles(dt);
         this.updateInstancedMeshes();
     }
@@ -126,8 +146,8 @@ export default class Renderer {
         this.vegeManager.updateInstancedMeshes();
     }
 
-    updateCamera(input) {
-        // const { dx, dy } = input.consumeDelta();
+    updateCamera() {
+        // const { dx, dy } = this.input.consumeDelta();
         
         // pan
         // this.cameraPosition.x -= dx * 0.1;
@@ -136,8 +156,8 @@ export default class Renderer {
         // this.cameraLookAt.z -= dy * 0.1;
 
         // parallax
-        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(input.mouseX * 0.2);
-        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(input.mouseY * 0.2);
+        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(this.input.mouseX * 0.2);
+        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(this.input.mouseY * 0.2);
         const parallaxAppliedPosition = this.cameraPosition.clone().add(shiftX).add(shiftY);
 
         this.camera.position.copy(parallaxAppliedPosition);

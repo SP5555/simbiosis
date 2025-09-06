@@ -3,7 +3,9 @@
 import * as THREE from 'three';
 
 export default class LandTileManager {    
-    constructor(tiles, tileWidth, tileHeight) {
+    constructor() {}
+
+    loadTiles(tiles, tileWidth, tileHeight) {
         this.tiles = tiles.filter(tile => !tile.cell.isWater);
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
@@ -52,7 +54,6 @@ export default class LandTileManager {
     }
 
     getDrawable() {
-        return this.instancedMesh;
+        if (this.instancedMesh) return this.instancedMesh;
     }
-
 }

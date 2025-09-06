@@ -14,15 +14,15 @@ export function waterTileColor(tile) {
 export function landTileColor(tile) {
     let f = tile.currentFilter;
     if (f == "Biome")
-        return hexToColor(moisAndTempDecorHex(tile.colors.baseHex, tile.cell.moisture, tile.cell.temperature));
+        return hexToColor(tempDecorHex(tile.colors.baseHex, tile.cell.temperature));
     if (f == "Elevation")
         return tile.colors.elevation;
     if (f == "Elevation Gradient")
         return tile.colors.gradient;
     if (f == "Temperature")
         return hexToColor(temperatureToColorHex(tile.cell.temperature));
-    if (f == "Moisture")
-        return hexToColor(moistureToColorHex(tile.cell.moisture));
+    if (f == "Fertility")
+        return hexToColor(fertilityToColorHex(tile.cell.fertility));
     return hexToColor(0xff0000);
 }
 
@@ -32,8 +32,10 @@ function waterWobbleColor(tile) {
     return tile.colors.base.clone().multiplyScalar(1 + wobble);
 }
 
-export function biomeToColor(biome) {
-    return BIOME_COLOR_MAP[biome] ?? BIOME_COLOR_MAP["undefined"];
+export function biomeFertilityToColor(biome, fertility) {
+    const biomeHex = BIOME_COLOR_MAP[biome] ?? BIOME_COLOR_MAP["undefined"];
+    const fertilityFactor = Math.min(1, Math.max(0, fertility));
+    return lerpColorHex(biomeHex, 0x000000, fertilityFactor * 0.4);
 }
 
 export function seaDepthToColor(elev) {
@@ -48,15 +50,11 @@ export function temperatureToColorHex(temp) {
     return interpolateColorStops(temp, TEMPERATURE_COLOR_STOPS);
 }
 
-function moistureToColorHex(moisture) {
-    return lerpColorHex(0x000000, 0x066ff, moisture);
+function fertilityToColorHex(fertility) {
+    return lerpColorHex(0x000000, 0x0cc66, fertility);
 }
 
-function moisAndTempDecorHex(bcHex, moisture, temperature) {
-    // moisture mask
-    const moistureFactor = Math.min(1, Math.max(0, moisture));
-    bcHex = lerpColorHex(bcHex, 0x000000, moistureFactor * 0.4);
-
+function tempDecorHex(bcHex, temperature) {
     // snow mask
     const snowColor = 0xdfdfdf;
     const snowStartTemp = 2;
