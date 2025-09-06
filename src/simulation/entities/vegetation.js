@@ -67,8 +67,8 @@ export default class Vegetation {
                 if (dx !== 0 || dy !== 0) {
                     let neighbor = map.getCell(cell.x + dx, cell.y + dy);
                     if (neighbor && !neighbor.isWater) {
-                        let exceed = neighbor.vegetation.add(this.sprAmt);
-                        this.value += (-this.sprAmt + exceed);
+                        let accepted = neighbor.vegetation.add(this.sprAmt);
+                        this.value -= accepted;
                         this.spreadTicks = 0;
                     }
                 }
@@ -82,11 +82,10 @@ export default class Vegetation {
 
     // receives spread from neighbor
     add(spr) {
-        if (this.value >= 1.0) return spr;
-        let accepted = Math.min(spr, 1.0 - this.value);
-        let exceed = spr - accepted;
+        if (this.value >= 2.0) return 0;
+        let accepted = Math.min(spr, 2.0 - this.value);
         this.value += accepted;
-        return exceed;
+        return accepted;
     }
 
     calcParams(t, f) {
