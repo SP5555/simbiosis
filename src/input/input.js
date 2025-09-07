@@ -2,8 +2,8 @@
 
 export default class Input {
     constructor() {
-        this.mouseX = 0;
-        this.mouseY = 0;
+        this.mouseX = -1;
+        this.mouseY = -1;
         this.dx = 0;
         this.dy = 0;
         this.mouseDown = false;

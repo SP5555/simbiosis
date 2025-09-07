@@ -39,7 +39,7 @@ export default class Vegetation {
         const scaleMatrix = new THREE.Matrix4().makeScale(s, s, 1);
         const translateMatrix = new THREE.Matrix4().makeTranslation(
             this.position.x,
-            this.position.y + (veg > 0 ? 0.55 : 0),
+            this.position.y + (veg > 0 ? 1.05 : 0),
             this.position.z
         );
         this.TSRMatrix = new THREE.Matrix4()

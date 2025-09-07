@@ -7,7 +7,11 @@ import { BIOME_COLOR_MAP, ELEVATION_COLOR_STOPS, SEA_DEPTH_COLOR_STOPS, TEMPERAT
 export function waterTileColor(tile) {
     let f = tile.currentFilter;
     if (f == "Elevation")
-        return tile.colors.elevation;
+        return hexToColor(elevationToColorHex(tile.cell.elevation));
+    if (f == "Temperature")
+        return hexToColor(temperatureToColorHex(tile.cell.temperature));
+    if (f == "Humidity")
+        return hexToColor(0x449999);
     return waterWobbleColor(tile);
 }
 
@@ -16,13 +20,15 @@ export function landTileColor(tile) {
     if (f == "Biome")
         return hexToColor(tempDecorHex(tile.colors.baseHex, tile.cell.temperature));
     if (f == "Elevation")
-        return tile.colors.elevation;
+        return hexToColor(elevationToColorHex(tile.cell.elevation));
     if (f == "Elevation Gradient")
-        return tile.colors.gradient;
+        return gradientToColor(tile.cell.gradient);
     if (f == "Temperature")
         return hexToColor(temperatureToColorHex(tile.cell.temperature));
     if (f == "Fertility")
         return hexToColor(fertilityToColorHex(tile.cell.fertility));
+    if (f == "Humidity")
+        return hexToColor(humidityToColorHex(tile.cell.humidity.value));
     return hexToColor(0xff0000);
 }
 
@@ -38,11 +44,11 @@ export function biomeFertilityToColor(biome, fertility) {
     return lerpColorHex(biomeHex, 0x000000, fertilityFactor * 0.4);
 }
 
-export function seaDepthToColor(elev) {
+export function seaDepthToColorHex(elev) {
     return interpolateColorStops(elev, SEA_DEPTH_COLOR_STOPS);
 }
 
-export function elevationToColor(elev) {
+export function elevationToColorHex(elev) {
     return interpolateColorStops(elev, ELEVATION_COLOR_STOPS);
 }
 
@@ -52,6 +58,10 @@ export function temperatureToColorHex(temp) {
 
 function fertilityToColorHex(fertility) {
     return lerpColorHex(0x000000, 0x0cc66, fertility);
+}
+
+function humidityToColorHex(humidity) {
+    return lerpColorHex(0x000000, 0x2446cc, humidity);
 }
 
 function tempDecorHex(bcHex, temperature) {

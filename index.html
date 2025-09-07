@@ -9,7 +9,9 @@
         canvas { display:block; }
         .top-left { position: absolute; top: 10px; left: 10px; }
         .bot-right { position: absolute; bottom: 10px; right: 10px; }
-        .stats-box { background: rgba(255, 255, 255, 0.2); font-size: 0.8em;
+        .vertical-spacer { height: 10px; }
+
+        .stats-box { background: rgba(255, 255, 255, 0.2); font-size: 0.8em; display: inline-block;
             padding: 4px 10px; border-radius: 2px; font-family: consolas; z-index: 10; }
         .link-box { background: rgba(255, 255, 255, 0.2);
             padding: 10px 10px; border-radius: 20px; font-family: consolas; z-index: 10; }
@@ -31,7 +33,7 @@
 
 <body>
     <canvas id="canvas00"></canvas>
-    <div class="top-left">
+    <div class="top-left" style="flex-direction: column;">
         <div class="stats-box" style="color: white;">
             Day <span id="simStatDay">N/A</span> of Year <span id="simStatYear">N/A</span>
             <table>
@@ -42,6 +44,10 @@
                     <td>FPS</td><td>:</td><td><span id="simStatFPS">N/A</span></td>
                 </tr>
             </table>
+        </div>
+        <div class="vertical-spacer"></div>
+        <div class="stats-box" style="color: white;">
+            <table id="hoveredTileTable"></table>
         </div>
     </div>
     <div class="bot-right">

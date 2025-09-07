@@ -23,17 +23,17 @@ export const TEMPERATURE_COLOR_STOPS = [
 ];
 
 export const BIOME_COLOR_MAP = {
-    "Tundra":       0xa3914d,
-    "Steppe":       0xa89034,
-    "Desert":       0xad8f1f,
+    "Desert":       0xccad60,
+    "Steppe":       0xad8967,
+    "Tundra":       0xa89d99, // 0xa3914d,
 
-    "Taiga":        0x9e8451,
-    "Temperate":    0x94773d,
-    "Savanna":      0x8f6f2f,
+    "Savanna":      0xa37936, // 0x8f6f2f,
+    "Grassland":    0xa18243,
+    "Taiga":        0xb08d80, // 0x9e8451,
 
-    "Boreal":       0x96744d,
+    "Jungle":       0x855d2e,
     "Forest":       0x8f6a3f, 
-    "Rainforest":   0x855d2e,
+    "Boreal":       0x96744d,
 
     "undefined":    0xff0000,
 };

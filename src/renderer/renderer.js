@@ -5,6 +5,7 @@ import { LandTile, WaterTile } from './world/tile.js';
 import VegetationManager from './mesh-managers/vegetation-manager.js';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
+import TilePicker from '../utils/tile-picker.js';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 
@@ -17,41 +18,40 @@ export default class Renderer {
 
     initializeScene() {
         // ===== scene setup =====
-        // scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x101010);
 
-        // camera
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.cameraPosition = new THREE.Vector3(0, 60, 40);
         this.cameraLookAt = new THREE.Vector3(0, 0, 4);
         this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
         this.camera.lookAt(0, 0, 4);
 
-        // renderer
         const canvas = document.getElementById('canvas00');
         this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // light
         const light = new THREE.DirectionalLight(0xffffff, 4);
         light.position.set(0, 80, 20);
         this.scene.add(light);
-
-        // event subscriptions
-        window.addEventListener('resize', () => this.onResize(), false);
-        eventBus.on(EVENTS.MAP_GENERATED, (map) => {
-            this.rebuildScene();
-        });
-        eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) => {
-            this.mapFilterChange(filterName);
-        });
 
         // mesh managers
         this.landTileManager = new LandTileManager();
         this.waterTileManager = new WaterTileManager();
         this.vegeManager = new VegetationManager();
+
+        this.tilePicker = new TilePicker(
+            this.camera, this.input,
+            { // only hoverable tiles
+                land: this.landTileManager,
+                water: this.waterTileManager,
+            }
+        )
+        this.hoveredTile = null;
+
+        // event subscriptions
+        this.initializeEventListeners();
 
         // ===== simulation setup =====
         if (this.simulation.map) {
@@ -86,6 +86,20 @@ export default class Renderer {
                 this.tiles.push(tile);
             }
         }
+    }
+
+    initializeEventListeners() {
+        window.addEventListener('resize', () => this.onResize(), false);
+
+        eventBus.on(EVENTS.MAP_GENERATED, (map) =>
+            this.rebuildScene()
+        );
+        eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) =>
+            this.mapFilterChange(filterName)
+        );
+        eventBus.on(EVENTS.TILE_HOVERED, (tile) =>
+            this.updateHoveredTile(tile)
+        );
     }
 
     buildInstancedMeshes() {
@@ -124,7 +138,7 @@ export default class Renderer {
 
     render(dt) {
         this.updateScene(dt);
-        
+        this.tilePicker.update();
         this.renderer.render(this.scene, this.camera);
     }
     
@@ -144,6 +158,14 @@ export default class Renderer {
         this.landTileManager.updateInstancedMeshes();
         this.waterTileManager.updateInstancedMeshes();
         this.vegeManager.updateInstancedMeshes();
+    }
+
+    updateHoveredTile(tile) {
+        if (this.hoveredTile && this.hoveredTile !== tile) {
+            this.hoveredTile.setHovered(false);
+        }
+        if (tile) tile.setHovered(true);
+        this.hoveredTile = tile;
     }
 
     updateCamera() {

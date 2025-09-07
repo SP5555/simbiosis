@@ -68,6 +68,7 @@ export default class MapGenerator {
             this.smooth(fertilityMap, 0.6);
             this.amplify(fertilityMap, 0.2, 0.5);
         }
+        this.clamp(fertilityMap, 0, 1);
 
         let { gradX, gradY } = this.computeGradient(elevationMap);
         return this.constructMap(elevationMap, fertilityMap, baseTemp, { gradX, gradY });
@@ -157,6 +158,14 @@ export default class MapGenerator {
         for (let y = 0; y < map.metaData.height; y++) {
             for (let x = 0; x < map.metaData.width; x++) {
                 map[y][x] += (this.randomEngine.rand1f() - 0.5) * range;
+            }
+        }
+    }
+
+    static clamp(map, min = 0, max = 1) {
+        for (let y = 0; y < map.metaData.height; y++) {
+            for (let x = 0; x < map.metaData.width; x++) {
+                map[y][x] = Math.max(min, Math.min(max, map[y][x]));
             }
         }
     }

@@ -5,10 +5,8 @@ import Vegetation from '../entities/vegetation.js';
 import { hexToColor } from '../utils/color-utils.js';
 import {
     biomeFertilityToColor,
-    elevationToColor,
-    gradientToColor,
     landTileColor,
-    seaDepthToColor,
+    seaDepthToColorHex,
     waterTileColor,
 } from './colors/tile-color-core.js';
 import { SineAnimation } from '../animation/animation-state.js';
@@ -26,10 +24,14 @@ class Tile {
         this.colors = {
             baseHex:    0x000000,
             base:       new THREE.Color(0, 0, 0),
-            elevation:  new THREE.Color(0, 0, 0),
-            gradient:   new THREE.Color(0, 0, 0),
         };
         this.renderColor = new THREE.Color(0, 0, 0);
+
+        this.hovered = false;
+    }
+
+    setHovered(hovered) {
+        this.hovered = hovered;
     }
 
     updateAnimationState(dt) {
@@ -48,16 +50,22 @@ class Tile {
         // this function MUST set this.renderColor or it will appear black
         throw new Error("updateColor() must be implemented in subclass");
     }
+
+    updateHoverState() {
+        if (this.hovered) {
+            this.renderColor.r = Math.min(1, this.renderColor.r + 0.3);
+            this.renderColor.g = Math.min(1, this.renderColor.g + 0.3);
+            this.renderColor.b = Math.min(1, this.renderColor.b + 0.3);
+        }
+    }
 }
 
 export class WaterTile extends Tile {
     constructor(cell, position, scale) {
         super(cell, position, scale);
 
-        this.colors.baseHex = seaDepthToColor(this.cell.elevation);
+        this.colors.baseHex = seaDepthToColorHex(this.cell.elevation);
         this.colors.base = hexToColor(this.colors.baseHex);
-        this.colors.elevation = hexToColor(elevationToColor(this.cell.elevation));
-        this.colors.gradient = gradientToColor(this.cell.gradient);
 
         this.animation = new SineAnimation({
             speed: -1,
@@ -86,6 +94,7 @@ export class WaterTile extends Tile {
 
     updateColor() {
         this.renderColor = waterTileColor(this);
+        this.updateHoverState();
     }
 }
 
@@ -97,8 +106,6 @@ export class LandTile extends Tile {
 
         this.colors.baseHex = biomeFertilityToColor(this.cell.biome, this.cell.fertility);
         this.colors.base = hexToColor(this.colors.baseHex);
-        this.colors.elevation = hexToColor(elevationToColor(this.cell.elevation));
-        this.colors.gradient = gradientToColor(this.cell.gradient);
     }
 
     updateAnimationState(dt) {
@@ -108,5 +115,6 @@ export class LandTile extends Tile {
 
     updateColor() {
         this.renderColor = landTileColor(this);
+        this.updateHoverState();
     }
 }

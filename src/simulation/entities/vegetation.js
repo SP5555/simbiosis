@@ -33,20 +33,20 @@ export default class Vegetation {
             Object.assign(this, this.calcParams(cell.temperature, cell.fertility));
         }
 
-        this.handleExtinction();
-        this.handleGrowth();
-        this.handleSpread(cell, map);
+        this.stepExtinction();
+        this.stepGrowth();
+        this.stepSpread(cell, map);
 
         this.value = Math.max(0, this.value);
     }
 
-    handleGrowth() {
+    stepGrowth() {
         let P = this.value;
         P += this.changeRate * P * (1 - P / (this.max + 1e-5));
         this.value = P;
     }
 
-    handleExtinction() {
+    stepExtinction() {
         if (this.value < this.extThreshold) {
             if (this.deathTicks >= this.extInterval && Math.random() < this.extProb) {
                 this.value = 0;
@@ -59,7 +59,7 @@ export default class Vegetation {
         }
     }
 
-    handleSpread(cell, map) {
+    stepSpread(cell, map) {
         if (this.value >= this.sprThreshold) {
             if (this.spreadTicks >= this.sprInterval && Math.random() < this.sprProb) {
                 let dx = Math.floor(Math.random() * 5) - 2;
@@ -100,15 +100,15 @@ export default class Vegetation {
 
     getBiomeVegetationDefaults() {
         switch (this.biome) {
-            case "Tundra":      return { max: 0.10 };
-            case "Steppe":      return { max: 0.15 }
             case "Desert":      return { max: 0.20 };
-            case "Taiga":       return { max: 0.20 };
-            case "Temperate":   return { max: 0.30 };
+            case "Steppe":      return { max: 0.15 }
+            case "Tundra":      return { max: 0.10 };
             case "Savanna":     return { max: 0.40 };
-            case "Boreal":      return { max: 0.60 };
+            case "Grassland":   return { max: 0.30 };
+            case "Taiga":       return { max: 0.20 };
+            case "Junble":      return { max: 0.90 };
             case "Forest":      return { max: 0.75 };
-            case "Rainforest":  return { max: 0.90 };
+            case "Boreal":      return { max: 0.60 };
             default:            return { max: 0.00 };
         }
     }

@@ -1,10 +1,13 @@
 export const EVENTS = {
-    // GUI emitted events
+    // GUI events
     GENERATE_MAP: "GUI:generateMap",
     APPLY_TERRAIN_FILTER: "GUI:applyTerrainFilter",
     
-    // simulation emitted events
+    // simulation events
     MAP_GENERATED: "sim:mapGenerated",
     SEASON_CHANGED: "sim:seasonChanged",
     DATE_CHANGED: "sim:dateChanged",
+
+    // tile picker events
+    TILE_HOVERED: "tpk:tileHovered",
 };

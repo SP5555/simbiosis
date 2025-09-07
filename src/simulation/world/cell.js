@@ -1,6 +1,7 @@
 'use strict'
 
 import Vegetation from "../entities/vegetation.js";
+// import Humidity from "./humidity.js";
 
 const SEA_LEVEL = 0.0;
 
@@ -19,6 +20,9 @@ export default class Cell {
         this.tempChanged = false;
 
         this.biome = this.classifyBiome();
+
+        // this.humidity = new Humidity(this.isWater, Math.random() / 5);
+
         this.vegetation = null;
         if (this.isWater) {
             this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, 0);
@@ -28,9 +32,10 @@ export default class Cell {
     }
 
     step(baseTemp, map) {
-        if (this.isWater) return;
+        // if (this.isWater) return;
         this.updateTemp(baseTemp);
         this.vegetation.step(this, map);
+        // this.humidity.step(this, map);
     }
 
     elevationToTemp(baseTemp, elevation) {
@@ -60,21 +65,39 @@ export default class Cell {
     classifyBiome() {
         if (this.isWater) return "Ocean";
 
-        const t = this.temperature;
+        const e = this.elevation;
         const f = this.fertility;
 
-        if (f < 0.2) {
-            if (t < 4)  return "Tundra";
-            if (t < 26) return "Steppe";
-                        return "Desert";
-        } else if (f < 0.8) {
-            if (t < 4)  return "Taiga";
-            if (t < 30) return "Temperate";
-                        return "Savanna";
+        if (f < 0.3) {
+            if (e < 1000)   return "Desert";
+            if (e < 3000)   return "Steppe";
+                            return "Tundra";
+        } else if (f < 0.7) {
+            if (e < 1000)   return "Savanna";
+            if (e < 3000)   return "Grassland";
+                            return "Taiga";
         } else {
-            if (t < 10) return "Boreal";
-            if (t < 36) return "Forest";
-                        return "Rainforest";
+            if (e < 1000)   return "Jungle";
+            if (e < 3000)   return "Forest";
+                            return "Boreal"; 
+        }
+    }
+
+    // only return string values
+    getDisplayStats() {
+        if (this.isWater) {
+            return {
+                Elevation: this.elevation.toFixed(1),
+                Temperature: this.temperature.toFixed(1),
+            };
+        } else {
+            return {
+                Elevation: this.elevation.toFixed(1),
+                Temperature: this.temperature.toFixed(1),
+                Biome: this.biome,
+                Fertility: this.fertility.toFixed(2),
+                Vegetation: this.vegetation.value.toFixed(2),
+            };
         }
     }
 }

@@ -13,7 +13,7 @@ export default class WaterTileManager {
     }
 
     buildInstancedMeshes() {
-        const geometry = new THREE.BoxGeometry(this.tileWidth, 1, this.tileHeight, 1, 1, 1);
+        const geometry = new THREE.BoxGeometry(this.tileWidth, 2, this.tileHeight, 1, 1, 1);
         const material = new THREE.MeshStandardMaterial();
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
