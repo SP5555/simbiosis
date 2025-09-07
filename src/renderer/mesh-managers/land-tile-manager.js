@@ -19,6 +19,9 @@ export default class LandTileManager {
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
 
+        this.instancedMesh.castShadow = true;
+        this.instancedMesh.receiveShadow = true;
+
         this.updatePos();
     }
 

@@ -18,6 +18,8 @@ export default class VegetationManager {
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
+
+        this.instancedMesh.receiveShadow = true;
     }
 
     updateInstancedMeshes() {

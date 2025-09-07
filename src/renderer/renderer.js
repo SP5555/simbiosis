@@ -6,6 +6,7 @@ import VegetationManager from './mesh-managers/vegetation-manager.js';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
 import TilePicker from '../utils/tile-picker.js';
+import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 
@@ -32,9 +33,11 @@ export default class Renderer {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        const light = new THREE.DirectionalLight(0xffffff, 4);
-        light.position.set(0, 80, 20);
-        this.scene.add(light);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        this.sun = new Sun();
+        this.scene.add(this.sun.getDrawable());
 
         // mesh managers
         this.landTileManager = new LandTileManager();
@@ -76,7 +79,7 @@ export default class Renderer {
 
                 let position = new THREE.Vector3(
                     cell.x * this.tileWidth + this.tileWidth / 2 - mapWidth / 2,
-                    Math.max(cell.elevation, 0) * scale / 1000,
+                    Math.max(cell.elevation, 0) * scale / 600,
                     cell.y * this.tileHeight + this.tileHeight / 2 - mapHeight / 2,
                 )
 
