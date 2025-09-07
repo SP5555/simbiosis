@@ -33,9 +33,7 @@ export function landTileColor(tile) {
 }
 
 function waterWobbleColor(tile) {
-    const anim = tile.animation;
-    const wobble = Math.sin(anim.elapsed + anim.phase) * anim.amplitude;
-    return tile.colors.base.clone().multiplyScalar(1 + wobble);
+    return tile.colors.base.clone().multiplyScalar(1 + tile.animation.value());
 }
 
 export function biomeFertilityToColor(biome, fertility) {

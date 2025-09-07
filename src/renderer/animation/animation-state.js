@@ -1,4 +1,4 @@
-import { TWO_PI } from "../utils/utils.js";
+import { TWO_PI } from "../../utils/utils.js";
 
 class AnimationState {
     constructor({ speed = 0, duration = 0, wrap = false } = {}) {
@@ -15,14 +15,14 @@ class AnimationState {
 }
 
 export class SineAnimation extends AnimationState {
-    constructor({ speed = 1, amplitude = 1, phase = 0 } = {}) {
+    constructor({ speed = 1, amplitude = 1, offset = 0 } = {}) {
         super({ speed: speed, duration: TWO_PI });
 
         this.amplitude = amplitude;
-        this.phase = phase;
+        this.offset = offset;
     }
 
     value() {
-        return Math.sin(this.elapsed + this.phase) * this.amplitude;
+        return Math.sin(this.elapsed + this.offset) * this.amplitude;
     }
 }

@@ -14,7 +14,7 @@ export default class VegetationManager {
 
     buildInstancedMeshes() {
         const geometry = new THREE.PlaneGeometry(0.75 * this.tileWidth, 0.75 * this.tileHeight);
-        const material = new THREE.MeshStandardMaterial();
+        const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);

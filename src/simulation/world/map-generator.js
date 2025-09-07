@@ -70,8 +70,21 @@ export default class MapGenerator {
         }
         this.clamp(fertilityMap, 0, 1);
 
+        let offsetMap = this.random2D(width, height, -Math.PI * 2, Math.PI * 2);
+        this.smooth(offsetMap);
+        this.amplify(offsetMap, 0.2, 0);
+        for ( let i = 0; i < expand; i++ ) {
+            this.expand4x(offsetMap);
+            this.applyNoise(offsetMap, 0.4);
+            this.smooth(offsetMap, 0.8);
+            this.amplify(offsetMap, 0.1, 0);
+        }
+        for ( let i = 0; i < 2; i++ ) this.smooth(offsetMap, 0.2);
+
+        // ===== animation offset =====
+
         let { gradX, gradY } = this.computeGradient(elevationMap);
-        return this.constructMap(elevationMap, fertilityMap, baseTemp, { gradX, gradY });
+        return this.constructMap(elevationMap, fertilityMap, { gradX, gradY }, baseTemp, offsetMap);
     }
 
     static computeGradient(elevationMap) {
@@ -204,7 +217,7 @@ export default class MapGenerator {
         return totalValue / neighborCount;
     }
     
-    static constructMap(elevationMap, fertilityMap, baseTemp, gradientMaps) {
+    static constructMap(elevationMap, fertilityMap, gradientMaps, baseTemp, offsetMap) {
         const { gradX, gradY } = gradientMaps;
         let cells = [];
 
@@ -215,8 +228,9 @@ export default class MapGenerator {
             for (let x = 0; x < width; x++) {
                 const elevation = elevationMap[y][x];
                 const fertility = fertilityMap[y][x];
+                const animOffset = offsetMap[y][x];
                 const gradient = new THREE.Vector2(gradX[y][x], gradY[y][x]);
-                row.push(new Cell(x, y, elevation, fertility, baseTemp, gradient));
+                row.push(new Cell(x, y, elevation, fertility, gradient, baseTemp, animOffset));
             }
             cells.push(row);
         }

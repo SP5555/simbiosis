@@ -70,7 +70,7 @@ export class WaterTile extends Tile {
         this.animation = new SineAnimation({
             speed: -1,
             amplitude: 0.25,
-            phase: (cell.elevation / 250) + Math.random() * 2,
+            offset: (cell.elevation / 250) + cell.animOffset + Math.random() * 2,
         })
     }
 

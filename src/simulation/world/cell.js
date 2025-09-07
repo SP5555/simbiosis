@@ -6,9 +6,11 @@ import Vegetation from "../entities/vegetation.js";
 const SEA_LEVEL = 0.0;
 
 export default class Cell {
-    constructor(x, y, elevation, fertility, baseTemp, gradient) {
+    constructor(x, y, elevation, fertility, gradient, baseTemp, animOffset = 0) {
         this.x = x;
         this.y = y;
+        this.animOffset = animOffset;
+
         this.elevation = elevation;
         this.fertility = fertility;
         this.gradient = gradient;
@@ -69,16 +71,16 @@ export default class Cell {
         const f = this.fertility;
 
         if (f < 0.3) {
-            if (e < 750)   return "Desert";
-            if (e < 3000)   return "Steppe";
+            if (e < 1250)   return "Desert";
+            if (e < 2800)   return "Steppe";
                             return "Tundra";
         } else if (f < 0.7) {
-            if (e < 750)   return "Savanna";
-            if (e < 3000)   return "Grassland";
+            if (e < 1000)    return "Savanna";
+            if (e < 3200)   return "Grassland";
                             return "Taiga";
         } else {
-            if (e < 750)   return "Jungle";
-            if (e < 3000)   return "Forest";
+            if (e < 750)    return "Jungle";
+            if (e < 3600)   return "Forest";
                             return "Boreal"; 
         }
     }
