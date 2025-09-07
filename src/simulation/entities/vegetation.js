@@ -2,16 +2,16 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        changeRate: 0.014,      // sensitivity to logistic growth equation 
+        changeRate: 0.008,      // sensitivity to logistic growth equation 
         max: 0.5,               // max vegetation allowed (variable)
 
         extThreshold: 0.10,     // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
-        extProb: 0.01,          // per-tick probability of vegetation dying
+        extProb: 0.004,         // per-tick probability of vegetation dying
 
         sprThreshold: 0.3,      // above this threshold, spread timer starts
         sprInterval: 300,       // after this amount of ticks, spread becomes possible
-        sprProb: 0.01,          // per-tick probability of spreading to random neighbor
+        sprProb: 0.004,         // per-tick probability of spreading to random neighbor
         sprAmt: 0.01,           // spread this amount of vegetation
     };
 
