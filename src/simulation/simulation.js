@@ -10,7 +10,7 @@ export default class Simulation {
         this.ticksPerDay = 900;  // IRL 15s  = sim 1d
         this.daysPerYear = 20;   // IRL  5m  = sim 1y
 
-        this.baseTemps = [2, 26, 20, -4];
+        this.baseTemps = [6, 26, 20, 0];
         this.seasons = ["Spring", "Summer", "Fall", "Winter"];
 
         this.currentDate = -1;
