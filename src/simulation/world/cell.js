@@ -87,13 +87,13 @@ export default class Cell {
     getDisplayStats() {
         if (this.isWater) {
             return {
-                Elevation: this.elevation.toFixed(1),
-                Temperature: this.temperature.toFixed(1),
+                Elevation: `${this.elevation.toFixed(0)} m`,
+                Temperature: `${this.temperature.toFixed(1)}&deg;C`,
             };
         } else {
             return {
-                Elevation: this.elevation.toFixed(1),
-                Temperature: this.temperature.toFixed(1),
+                Elevation: `${this.elevation.toFixed(0)}m`,
+                Temperature: `${this.temperature.toFixed(1)}&deg;C`,
                 Biome: this.biome,
                 Fertility: this.fertility.toFixed(2),
                 Vegetation: this.vegetation.value.toFixed(2),
