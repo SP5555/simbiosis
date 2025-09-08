@@ -147,8 +147,13 @@ export default class Renderer {
     
     updateScene(dt) {
         this.updateCamera();
+        this.updateSun(this.simulation.yearProgress);
         this.updateTiles(dt);
         this.updateInstancedMeshes();
+    }
+
+    updateSun(yearProgress) {
+        this.sun.update(yearProgress);
     }
 
     updateTiles(dt) {

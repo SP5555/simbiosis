@@ -19,7 +19,8 @@ export default class Simulation {
         this.nextSeasonIdx = -1;
         
         this.seasonOffset = 0; // in days
-        this.progress = 0; // progress through the current season
+        this.seasonProgress = 0;
+        this.yearProgress = 0;
         this.baseTemp = 0;
         
         // event subscriptions
@@ -51,7 +52,8 @@ export default class Simulation {
 
         const seasonIndex = Math.floor(dayOfYear / seasonLength);
         const nextSeasonIndex = (seasonIndex + 1) % 4;
-        const progress = (dayOfYear % seasonLength) / seasonLength;
+        this.seasonProgress = (dayOfYear % seasonLength) / seasonLength;
+        this.yearProgress = dayOfYear / this.daysPerYear;
 
         const day = Math.floor(dayOfYear) + 1;
         const year = Math.floor((totalDays) / this.daysPerYear) + 1;
@@ -68,14 +70,12 @@ export default class Simulation {
                 name: this.seasons[seasonIndex]
             });
         }
-
-        this.progress = progress;
     }
 
     updateBaseTemp() {
         const t1 = this.baseTemps[this.currentSeasonIdx];
         const t2 = this.baseTemps[this.nextSeasonIdx];
-        this.baseTemp = t1 + (t2 - t1) * this.progress;
+        this.baseTemp = t1 + (t2 - t1) * this.seasonProgress;
     }
 
     step() {
