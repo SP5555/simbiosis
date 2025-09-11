@@ -32,6 +32,14 @@ export default class Renderer {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+        this.auxLight1 = new THREE.DirectionalLight(0x000099, 1);
+        this.auxLight1.position.copy(new THREE.Vector3(-10, 10, 10));
+        this.scene.add(this.auxLight1);
+
+        this.auxLight2 = new THREE.DirectionalLight(0x990000, 1);
+        this.auxLight2.position.copy(new THREE.Vector3(10, 10, 10));
+        this.scene.add(this.auxLight2);
+
         this.sun = new Sun();
         this.scene.add(this.sun.getDrawable());
 
