@@ -11,7 +11,7 @@ export default class App {
         this.input = new Input();
         this.simulation = new Simulation();
         this.renderer = new Renderer(this.simulation, this.input);
-        this.guiManager = new GuiManager();
+        this.gui = new GuiManager();
         this.hud = new HudManager();
 
         // timing vars
@@ -26,7 +26,7 @@ export default class App {
     }
 
     start() {
-        this.guiManager.emitInitialEvents();
+        this.gui.emitInitialEvents();
         this.lastTime = performance.now();
         requestAnimationFrame(this.loop);
     }

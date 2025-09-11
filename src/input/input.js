@@ -11,6 +11,8 @@ export default class Input {
         this.lastX = 0;
         this.lastY = 0;
 
+        this.scrollDelta = 0;
+
         window.addEventListener("mousedown", () => {
             this.mouseDown = true;
         });
@@ -39,6 +41,9 @@ export default class Input {
             this.mouseY = (event.clientY - halfHeight) / halfHeight;
         });
 
+        window.addEventListener("wheel", (event) => {
+            this.scrollDelta += Math.sign(event.deltaY);
+        })
     }
 
     consumeDelta() {
@@ -46,5 +51,11 @@ export default class Input {
         this.dx = 0;
         this.dy = 0;
         return { dx, dy };
+    }
+
+    consumeScroll() {
+        const delta = this.scrollDelta;
+        this.scrollDelta = 0;
+        return delta;
     }
 }

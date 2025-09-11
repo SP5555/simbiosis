@@ -1,24 +1,34 @@
 import * as THREE from 'three';
 import { interpolateColorStops } from '../utils/color-utils.js';
 import { SUN_COLOR_STOPS } from './colors/sun-color-data.js';
+import { lerpWrap } from '../utils/utils.js';
+import { eventBus } from '../../utils/event-emitters.js';
+import { EVENTS } from '../../utils/events.js';
 
 // just a directional light
 export default class Sun {
-    constructor(intensity = 4, color = 0xffffff, position = new THREE.Vector3(0, 40, 0)) {
-        this.light = new THREE.DirectionalLight(color, intensity);
-        this.light.position.copy(position);
+    constructor(
+    ) {
+        this.light = new THREE.DirectionalLight(0xffffff, 4);
+        this.light.position.copy(new THREE.Vector3(0, 40, 0));
 
         this.light.castShadow = true;
-        this.light.shadow.camera.left = -40;
-        this.light.shadow.camera.right = 40;
-        this.light.shadow.camera.top = 30;
-        this.light.shadow.camera.bottom = -30;
+        this.light.shadow.camera.left = -60;
+        this.light.shadow.camera.right = 60;
+        this.light.shadow.camera.top = 60;
+        this.light.shadow.camera.bottom = -60;
         this.light.shadow.camera.near = 1;
         this.light.shadow.camera.far = 200;
         this.light.shadow.mapSize.width = 3072;
         this.light.shadow.mapSize.height = 3072;
 
+        this.light.target = new THREE.Object3D();
+
         this.yearProgress = 0;
+
+        eventBus.on(EVENTS.CAMERA_UPDATED, ({ lookAt, zoomFactor }) => {
+            this.updateShadowCamera(lookAt, zoomFactor);
+        });
     }
 
     getDrawable() {
@@ -26,28 +36,43 @@ export default class Sun {
     }
 
     update(yearProgress, dt) {
-        this.updatePosition(yearProgress, dt);
-        this.updateColor(yearProgress, dt);
+        const alpha = Math.min(dt * 2, 1);
+        this.yearProgress = lerpWrap(this.yearProgress, yearProgress, alpha, 0, 1);
+
+        this.updatePosition();
+        this.updateColor();
     }
 
-    updatePosition(yearProgress, dt) {
-        const angle = yearProgress * Math.PI * 2;
+    updatePosition() {
+        const angle = this.yearProgress * Math.PI * 2;
 
         const radius = 30;
-        const targetPos = new THREE.Vector3(
+        this.light.position.set(
             15 + Math.cos(angle) * radius,
             40,
             -15 + Math.sin(angle) * radius
         );
-
-        const currentPos = this.light.position;
-        currentPos.lerp(targetPos, Math.min(dt, 1));
     }
 
-    updateColor(yearProgress, dt) {
-        const targetHex = interpolateColorStops(yearProgress, SUN_COLOR_STOPS);
+    updateColor() {
+        const targetHex = interpolateColorStops(this.yearProgress, SUN_COLOR_STOPS);
+        this.light.color.setHex(targetHex);
+    }
 
-        const targetColor = new THREE.Color(targetHex);
-        this.light.color.lerp(targetColor, Math.min(dt, 1));
+    // Update shadow camera to follow the main camera
+    updateShadowCamera(cameraLookAt, zoomFactor) {
+        const shadowCam = this.light.shadow.camera;
+
+        shadowCam.left = -60 * zoomFactor;
+        shadowCam.right = 60 * zoomFactor;
+        shadowCam.top = 60 * zoomFactor;
+        shadowCam.bottom = -60 * zoomFactor;
+
+        const center = cameraLookAt.clone();
+        shadowCam.position.set(center.x, center.y + 40, center.z);
+        shadowCam.updateProjectionMatrix();
+
+        this.light.target.position.copy(center);
+        this.light.target.updateMatrixWorld();
     }
 }

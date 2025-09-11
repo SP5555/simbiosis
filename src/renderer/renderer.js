@@ -9,6 +9,7 @@ import TilePicker from '../utils/tile-picker.js';
 import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
+import CameraController from './camera-controller.js';
 
 export default class Renderer {
     constructor(simulation, input) {
@@ -22,11 +23,7 @@ export default class Renderer {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x101010);
 
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.cameraPosition = new THREE.Vector3(0, 60, 40);
-        this.cameraLookAt = new THREE.Vector3(0, 0, 4);
-        this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
-        this.camera.lookAt(0, 0, 4);
+        this.cameraController = new CameraController(this.input);
 
         const canvas = document.getElementById('canvas00');
         this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -45,13 +42,15 @@ export default class Renderer {
         this.vegeManager = new VegetationManager();
 
         this.tilePicker = new TilePicker(
-            this.camera, this.input,
+            this.cameraController.getCamera(), this.input,
             { // only hoverable tiles
                 land: this.landTileManager,
                 water: this.waterTileManager,
             }
         )
         this.hoveredTile = null;
+
+        this.filter = null;
 
         // event subscriptions
         this.initializeEventListeners();
@@ -60,6 +59,23 @@ export default class Renderer {
         if (this.simulation.map) {
             this.buildScene();
         }
+    }
+
+    initializeEventListeners() {
+        window.addEventListener('resize', () => this.onResize(), false);
+        
+        eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) =>
+            this.mapFilterChange(filterName)
+        );
+        eventBus.on(EVENTS.TOGGLE_VEGETATION, (visible) =>
+            this.toggleVegetation(visible)
+        );
+        eventBus.on(EVENTS.MAP_GENERATED, (map) =>
+            this.rebuildScene()
+        );
+        eventBus.on(EVENTS.TILE_HOVERED, (tile) =>
+            this.updateHoveredTile(tile)
+        );
     }
 
     buildTiles() {
@@ -89,20 +105,8 @@ export default class Renderer {
                 this.tiles.push(tile);
             }
         }
-    }
 
-    initializeEventListeners() {
-        window.addEventListener('resize', () => this.onResize(), false);
-
-        eventBus.on(EVENTS.MAP_GENERATED, (map) =>
-            this.rebuildScene()
-        );
-        eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) =>
-            this.mapFilterChange(filterName)
-        );
-        eventBus.on(EVENTS.TILE_HOVERED, (tile) =>
-            this.updateHoveredTile(tile)
-        );
+        eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, scale);
     }
 
     buildInstancedMeshes() {
@@ -119,16 +123,6 @@ export default class Renderer {
         this.scene.add(this.vegeManager.getDrawable());
     }
 
-    buildScene() {
-        this.buildTiles();
-        this.buildInstancedMeshes();
-    }
-    
-    rebuildScene() {
-        this.clearScene();
-        this.buildScene();
-    }
-
     clearScene() {
         this.scene.remove(this.landTileManager.getDrawable());
         this.scene.remove(this.waterTileManager.getDrawable());
@@ -139,21 +133,27 @@ export default class Renderer {
         this.vegeManager.dispose();
     }
 
+    buildScene() {
+        this.buildTiles();
+        this.buildInstancedMeshes();
+    }
+    
+    rebuildScene() {
+        this.clearScene();
+        this.buildScene();
+    }
+
     render(dt) {
         this.updateScene(dt);
         this.tilePicker.update();
-        this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.cameraController.getCamera());
     }
     
     updateScene(dt) {
-        this.updateCamera();
-        this.updateSun(this.simulation.yearProgress, dt);
+        this.cameraController.update();
+        this.sun.update(this.simulation.yearProgress, dt);
         this.updateTiles(dt);
         this.updateInstancedMeshes();
-    }
-
-    updateSun(yearProgress, dt) {
-        this.sun.update(yearProgress, dt);
     }
 
     updateTiles(dt) {
@@ -176,33 +176,19 @@ export default class Renderer {
         this.hoveredTile = tile;
     }
 
-    updateCamera() {
-        // const { dx, dy } = this.input.consumeDelta();
-        
-        // pan
-        // this.cameraPosition.x -= dx * 0.1;
-        // this.cameraPosition.z -= dy * 0.1;
-        // this.cameraLookAt.x -= dx * 0.1;
-        // this.cameraLookAt.z -= dy * 0.1;
-
-        // parallax
-        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(this.input.mouseX * 0.2);
-        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(this.input.mouseY * 0.2);
-        const parallaxAppliedPosition = this.cameraPosition.clone().add(shiftX).add(shiftY);
-
-        this.camera.position.copy(parallaxAppliedPosition);
-        this.camera.lookAt(this.cameraLookAt);
-    }
-
     mapFilterChange(filterName) {
+        this.filter = filterName;
         for (let tile of this.tiles) {
             tile.filterChange(filterName);
         }
     }
 
+    toggleVegetation(visible) {
+        this.vegeManager.toggleVisibility(visible);
+    }
+
     onResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
+        this.cameraController.resize();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 }

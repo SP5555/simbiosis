@@ -12,15 +12,21 @@ export default class GuiManager {
     }
 
     buildGUI() {
-        // --- terrain filter ---
-        this.terrainFolder = this.gui.addFolder("Terrain Filter");
+        // --- world settings ---
+        this.worldSettingsFolder = this.gui.addFolder("World Settings");
         this.terrainFilters = ["Biome", "Elevation", "Elevation Gradient", "Temperature", "Fertility"];
         this.terrainParams = { filter: "Biome" };
-        this.terrainFolder.add(this.terrainParams, 'filter', this.terrainFilters)
+        this.worldSettingsFolder.add(this.terrainParams, 'filter', this.terrainFilters)
             .name("Select Filter").onChange((value) => {
                 eventBus.emit(EVENTS.APPLY_TERRAIN_FILTER, value);
             });
-        this.terrainFolder.open();
+        this.showVegetationParams = { showVegetation: true };
+        this.worldSettingsFolder.add(this.showVegetationParams, 'showVegetation')
+            .name("Show Vegetation")
+            .onChange((value) => {
+                eventBus.emit(EVENTS.TOGGLE_VEGETATION, value);
+            });
+        this.worldSettingsFolder.open();
 
         // --- map generation ---
         this.mapFolder = this.gui.addFolder("Map Generation");
@@ -37,6 +43,7 @@ export default class GuiManager {
                     startSeason: this.mapParams.startSeason
                 });
                 eventBus.emit(EVENTS.APPLY_TERRAIN_FILTER, this.terrainParams.filter);
+                eventBus.emit(EVENTS.TOGGLE_VEGETATION, this.showVegetationParams.showVegetation);
             }
         };
         this.mapFolder.add(this.mapParams, 'width', 1, 8, 1).name("Base Map Width");
@@ -56,7 +63,7 @@ export default class GuiManager {
             seed: this.mapParams.seed,
             startSeason: this.mapParams.startSeason
         });
-
         eventBus.emit(EVENTS.APPLY_TERRAIN_FILTER, this.terrainParams.filter);
+        eventBus.emit(EVENTS.TOGGLE_VEGETATION, this.showVegetationParams.showVegetation);
     }
 }

@@ -23,6 +23,7 @@ export default class VegetationManager {
     }
 
     updateInstancedMeshes() {
+        if (!this.instancedMesh.visible) { return; }
         this.updatePos();
         this.updateColors();
     }
@@ -44,6 +45,10 @@ export default class VegetationManager {
             i++;
         });
         this.instancedMesh.instanceColor.needsUpdate = true;
+    }
+
+    toggleVisibility(visible) {
+        if (this.instancedMesh) this.instancedMesh.visible = visible;
     }
 
     dispose() {
