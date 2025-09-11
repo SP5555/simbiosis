@@ -18,6 +18,11 @@ export default class CameraController {
         this.position = new THREE.Vector3(0, 60, 40);
         this.lookAtTarget = new THREE.Vector3(0, 0, 4);
 
+        // sensitivity settings
+        this.panSen = 0.08;
+        this.zoomSen = 1.6;
+        this.parallaxSen = 0.2;
+
         // pan settings
         this.panOffset = new THREE.Vector3(0, 0, 0);
         this.bounds = { width: 80 / 2, height: 60 / 2 };
@@ -49,20 +54,20 @@ export default class CameraController {
         const scroll = -this.input.consumeScroll();
 
         // pan
-        this.panOffset.x -= dx * this.zoomFactor * 0.1;
-        this.panOffset.z -= dy * this.zoomFactor * 0.1;
+        this.panOffset.x -= dx * this.zoomFactor * this.panSen;
+        this.panOffset.z -= dy * this.zoomFactor * this.panSen;
         this.panOffset.x = THREE.MathUtils.clamp(this.panOffset.x, -this.bounds.width, this.bounds.width);
         this.panOffset.z = THREE.MathUtils.clamp(this.panOffset.z, -this.bounds.height, this.bounds.height);
 
         // zoom
         if (scroll !== 0) {
-            this.zoomFactor -= scroll * this.zoomStep * this.zoomFactor;
+            this.zoomFactor -= scroll * this.zoomStep * this.zoomFactor * this.zoomSen;
             this.zoomFactor = THREE.MathUtils.clamp(this.zoomFactor, this.minZoom, this.maxZoom);
         }
 
         // parallax
-        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(this.input.mouseX * this.zoomFactor);
-        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(this.input.mouseY * this.zoomFactor);
+        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(this.input.mouseX * this.zoomFactor * this.parallaxSen);
+        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(this.input.mouseY * this.zoomFactor * this.parallaxSen);
         
         // apply pan
         const pannedPos = this.position.clone().add(this.panOffset);
