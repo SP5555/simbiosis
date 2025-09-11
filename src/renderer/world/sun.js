@@ -9,16 +9,12 @@ import { EVENTS } from '../../utils/events.js';
 export default class Sun {
     constructor(
     ) {
+        this.lightPosOffset = new THREE.Vector3(0, 0, 0);
         this.light = new THREE.DirectionalLight(0xffffff, 4);
-        this.light.position.copy(new THREE.Vector3(0, 40, 0));
 
         this.light.castShadow = true;
-        this.light.shadow.camera.left = -60;
-        this.light.shadow.camera.right = 60;
-        this.light.shadow.camera.top = 60;
-        this.light.shadow.camera.bottom = -60;
-        this.light.shadow.camera.near = 1;
-        this.light.shadow.camera.far = 200;
+        this.light.shadow.camera.near = 100;
+        this.light.shadow.camera.far = 700;
         this.light.shadow.mapSize.width = 3072;
         this.light.shadow.mapSize.height = 3072;
 
@@ -45,13 +41,16 @@ export default class Sun {
 
     updatePosition() {
         const angle = this.yearProgress * Math.PI * 2;
+        const radius = 60;
 
-        const radius = 30;
-        this.light.position.set(
-            15 + Math.cos(angle) * radius,
-            40,
-            -15 + Math.sin(angle) * radius
+        const basePos = new THREE.Vector3(
+            150 + Math.cos(angle) * radius,
+            400,
+            -150 + Math.sin(angle) * radius
         );
+        this.light.position.copy(basePos.add(this.lightPosOffset));
+        this.light.target.position.copy(this.lightPosOffset);
+        this.light.target.updateMatrixWorld();
     }
 
     updateColor() {
@@ -63,16 +62,12 @@ export default class Sun {
     updateShadowCamera(cameraLookAt, zoomFactor) {
         const shadowCam = this.light.shadow.camera;
 
-        shadowCam.left = -60 * zoomFactor;
-        shadowCam.right = 60 * zoomFactor;
-        shadowCam.top = 60 * zoomFactor;
-        shadowCam.bottom = -60 * zoomFactor;
-
-        const center = cameraLookAt.clone();
-        shadowCam.position.set(center.x, center.y + 40, center.z);
+        shadowCam.left      = -100 * zoomFactor;
+        shadowCam.right     =  100 * zoomFactor;
+        shadowCam.top       =  80 * zoomFactor;
+        shadowCam.bottom    = -80 * zoomFactor;
         shadowCam.updateProjectionMatrix();
 
-        this.light.target.position.copy(center);
-        this.light.target.updateMatrixWorld();
+        this.lightPosOffset = cameraLookAt.clone();
     }
 }

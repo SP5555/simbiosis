@@ -16,7 +16,7 @@ export default class CameraController {
         );
 
         this.position = new THREE.Vector3(0, 60, 40);
-        this.lookAtTarget = new THREE.Vector3(0, 0, 4);
+        this.lookAtTarget = new THREE.Vector3(0, 0, 0);
 
         // sensitivity settings
         this.panSen = 0.08;
@@ -25,7 +25,7 @@ export default class CameraController {
 
         // pan settings
         this.panOffset = new THREE.Vector3(0, 0, 0);
-        this.bounds = { width: 80 / 2, height: 60 / 2 };
+        this.bounds = { width: 0, height: 0 };
         
         // zoom settings
         this.zoomFactor = 1.0;
@@ -43,8 +43,9 @@ export default class CameraController {
     }
 
     initializeEventListeners() {
-        eventBus.on(EVENTS.NEW_SCALE_CALCULATED, (scale) => {
-            this.minZoom = Math.min(scale * 0.25, 0.8);
+        eventBus.on(EVENTS.NEW_SCALE_CALCULATED, ({ width, height }) => {
+            this.bounds = { width: width / 2 + 1, height: height / 2 + 1 };
+            this.maxZoom = Math.max(width, height) / 60;
             this.zoomFactor = THREE.MathUtils.clamp(this.zoomFactor, this.minZoom, this.maxZoom);
         });
     }
@@ -87,7 +88,6 @@ export default class CameraController {
         this.camera.lookAt(this.currentLookAt);
 
         eventBus.emit(EVENTS.CAMERA_UPDATED, {
-            position: this.currentPosition,
             lookAt: this.currentLookAt,
             zoomFactor: this.zoomFactor
         });

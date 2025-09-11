@@ -13,7 +13,7 @@ export default class Vegetation {
             base: new THREE.Color().setHex(0x00cc00)
         };
 
-        this.rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
+        this.rotationMatrix = new THREE.Matrix4().makeRotationX(- Math.PI / 2);
         this.TSRMatrix = new THREE.Matrix4();
         const translateMatrix = new THREE.Matrix4().makeTranslation(
             this.position.x,

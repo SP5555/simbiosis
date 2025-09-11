@@ -5,15 +5,13 @@ import * as THREE from 'three';
 export default class LandTileManager {    
     constructor() {}
 
-    loadTiles(tiles, tileWidth, tileHeight) {
+    loadTiles(tiles) {
         this.tiles = tiles.filter(tile => !tile.cell.isWater);
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
         this.count = this.tiles.length;
     }
 
     buildInstancedMeshes() {
-        const geometry = new THREE.BoxGeometry(this.tileWidth, 2, this.tileHeight, 1, 1, 1);
+        const geometry = new THREE.BoxGeometry(1, 2, 1, 1, 1, 1);
         const material = new THREE.MeshStandardMaterial();
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);

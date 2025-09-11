@@ -5,20 +5,19 @@ import * as THREE from 'three';
 export default class VegetationManager {
     constructor() {}
 
-    loadTiles(tiles, tileWidth, tileHeight) {
+    loadTiles(tiles) {
         this.tiles = tiles.filter(tile => !tile.cell.isWater);
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
         this.count = this.tiles.length;
     }
 
     buildInstancedMeshes() {
-        const geometry = new THREE.PlaneGeometry(0.75 * this.tileWidth, 0.75 * this.tileHeight);
+        const geometry = new THREE.PlaneGeometry(0.75, 0.75);
         const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
         this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
         const colorArr = new Float32Array(this.count * 3);
         this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
 
+        this.instancedMesh.castShadow = true;
         this.instancedMesh.receiveShadow = true;
     }
 

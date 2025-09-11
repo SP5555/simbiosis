@@ -12,10 +12,9 @@ import {
 import { SineAnimation } from '../animation/animation-state.js';
 
 class Tile {
-    constructor(cell, position, scale) {
+    constructor(cell, position) {
         this.cell = cell;
         this.position = position;
-        this.scale = scale;
 
         this.TSRMatrix = new THREE.Matrix4();
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y, this.position.z);
@@ -61,8 +60,8 @@ class Tile {
 }
 
 export class WaterTile extends Tile {
-    constructor(cell, position, scale) {
-        super(cell, position, scale);
+    constructor(cell, position) {
+        super(cell, position);
 
         this.colors.baseHex = seaDepthToColorHex(this.cell.elevation);
         this.colors.base = hexToColor(this.colors.baseHex);
@@ -88,7 +87,7 @@ export class WaterTile extends Tile {
     }
 
     updatePos() {
-        const wobble = this.animation.value() * this.scale;
+        const wobble = this.animation.value();
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);
     }
 
@@ -99,8 +98,8 @@ export class WaterTile extends Tile {
 }
 
 export class LandTile extends Tile {
-    constructor(cell, position, scale) {
-        super(cell, position, scale);
+    constructor(cell, position) {
+        super(cell, position);
 
         this.vegetation = new Vegetation(cell, this.position);
 

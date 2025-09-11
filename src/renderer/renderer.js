@@ -29,7 +29,6 @@ export default class Renderer {
         this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -80,13 +79,6 @@ export default class Renderer {
 
     buildTiles() {
         const map = this.simulation.map;
-        const maxMapWidth = 80, maxMapHeight = 60;
-        const scale = Math.min(maxMapWidth / map.width, maxMapHeight / map.height);
-        const mapWidth = Math.floor(map.width * scale);
-        const mapHeight = Math.floor(map.height * scale);
-        this.tileWidth = mapWidth / map.width;
-        this.tileHeight = mapHeight / map.height;
-
         this.tiles = [];
 
         for (let x = 0; x < map.width; x++) {
@@ -94,25 +86,25 @@ export default class Renderer {
                 const cell = map.getCell(x, y);
 
                 let position = new THREE.Vector3(
-                    cell.x * this.tileWidth + this.tileWidth / 2 - mapWidth / 2,
-                    Math.max(cell.elevation, 0) * scale / 600,
-                    cell.y * this.tileHeight + this.tileHeight / 2 - mapHeight / 2,
+                    cell.x + 0.5 - map.width / 2,
+                    Math.max(cell.elevation, 0) / 600,
+                    cell.y + 0.5 - map.height / 2,
                 )
 
                 const tile = cell.isWater
-                    ? new WaterTile(cell, position, scale) 
-                    : new LandTile(cell, position, scale);
+                    ? new WaterTile(cell, position)
+                    : new LandTile(cell, position);
                 this.tiles.push(tile);
             }
         }
 
-        eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, scale);
+        eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, { width: map.width, height: map.height });
     }
 
     buildInstancedMeshes() {
-        this.landTileManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
-        this.waterTileManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
-        this.vegeManager.loadTiles(this.tiles, this.tileWidth, this.tileHeight);
+        this.landTileManager.loadTiles(this.tiles);
+        this.waterTileManager.loadTiles(this.tiles);
+        this.vegeManager.loadTiles(this.tiles);
 
         this.landTileManager.buildInstancedMeshes();
         this.waterTileManager.buildInstancedMeshes();
