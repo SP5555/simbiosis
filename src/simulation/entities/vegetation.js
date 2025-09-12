@@ -5,7 +5,7 @@ export default class Vegetation {
         changeRate: 0.008,      // sensitivity to logistic growth equation 
         max: 0.5,               // max vegetation allowed (variable)
 
-        extThreshold: 0.04,     // under this threshold, extinction timer starts
+        extThreshold: 0.01,     // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
         extProb: 0.002,         // per-tick probability of vegetation dying
 
@@ -47,7 +47,7 @@ export default class Vegetation {
     }
 
     stepExtinction() {
-        if (this.value < this.extThreshold) {
+        if (this.value !== 0 && this.value < this.extThreshold) {
             if (this.deathTicks >= this.extInterval && Math.random() < this.extProb) {
                 this.value = 0;
                 this.deathTicks = 0;
@@ -106,7 +106,7 @@ export default class Vegetation {
             case "Savanna":     return { max: 0.40 };
             case "Grassland":   return { max: 0.30 };
             case "Taiga":       return { max: 0.20 };
-            case "Junble":      return { max: 0.90 };
+            case "Jungle":      return { max: 0.90 };
             case "Forest":      return { max: 0.75 };
             case "Boreal":      return { max: 0.60 };
             default:            return { max: 0.00 };
