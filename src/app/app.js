@@ -48,7 +48,7 @@ export default class App {
 
         // update overlay FPS 8 times/sec
         if (this.overlayAccumulator >= 0.125) {
-            this.hud.updateFPS(this.overlayAccumulator, this.overlayFrameCount);
+            this.hud.update(this.overlayAccumulator, this.overlayFrameCount);
             this.overlayAccumulator = 0;
             this.overlayFrameCount = 0;
         }

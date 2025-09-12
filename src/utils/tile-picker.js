@@ -41,7 +41,10 @@ export default class TilePicker {
             }
         }
 
-        this.hoveredTile = closestTile || null;
-        eventBus.emit(EVENTS.TILE_HOVERED, this.hoveredTile);
+        const newHoveredTile = closestTile || null;
+        if (this.hoveredTile !== newHoveredTile) {
+            this.hoveredTile = newHoveredTile;
+            eventBus.emit(EVENTS.TILE_HOVERED, this.hoveredTile);
+        }
     }
 }

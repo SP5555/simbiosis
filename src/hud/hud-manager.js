@@ -14,6 +14,7 @@ export default class HudManager {
         this.hoveredTileTableEl = document.getElementById("hoveredTileTable");
         
         this.weightedAvgFPS = 0;
+        this.hoveredTile = null;
 
         // event subscription
         eventBus.on(EVENTS.DATE_CHANGED, ({ day, year }) => {
@@ -25,6 +26,11 @@ export default class HudManager {
         eventBus.on(EVENTS.TILE_HOVERED, (tile) => {
             this.updateHoveredTile(tile);
         })
+    }
+
+    update(intervalTime, framesInInterval) {
+        this.updateFPS(intervalTime, framesInInterval);
+        this.updateHoveredTileStats();
     }
 
     updateFPS(intervalTime, framesInInterval) {
@@ -43,9 +49,13 @@ export default class HudManager {
     }
 
     updateHoveredTile(tile) {
+        this.hoveredTile = tile;
+    }
+
+    updateHoveredTileStats() {
         this.hoveredTileTableEl.innerHTML = '';
 
-        if (!tile) {
+        if (!this.hoveredTile) {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
             td.colSpan = 3;
@@ -55,7 +65,7 @@ export default class HudManager {
             return;
         }
 
-        const stats = tile.cell.getDisplayStats();
+        const stats = this.hoveredTile.cell.getDisplayStats();
 
         for (const [label, value] of Object.entries(stats)) {
             const tr = document.createElement('tr');
