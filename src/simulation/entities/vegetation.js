@@ -3,16 +3,16 @@
 export default class Vegetation {
     static DEFAULTS = {
         changeRate: 0.008,      // sensitivity to logistic growth equation 
-        max: 0.5,               // max vegetation allowed (variable)
+        max: 50,                // max vegetation allowed (variable)
 
-        extThreshold: 0.01,     // under this threshold, extinction timer starts
+        extThreshold: 1,        // under this threshold, extinction timer starts
         extInterval: 400,       // after this amount of ticks, extinction becomes possible
-        extProb: 0.002,         // per-tick probability of vegetation dying
+        extProb: 0.004,         // per-tick probability of vegetation dying
 
-        sprThreshold: 0.3,      // above this threshold, spread timer starts
+        sprThreshold: 30,       // above this threshold, spread timer starts
         sprInterval: 300,       // after this amount of ticks, spread becomes possible
         sprProb: 0.004,         // per-tick probability of spreading to random neighbor
-        sprAmt: 0.01,           // spread this amount of vegetation
+        sprAmt: 1,              // spread this amount of vegetation
     };
 
     constructor(temperature, fertility, biome="default", value=0, options = {}) {
@@ -33,8 +33,8 @@ export default class Vegetation {
             Object.assign(this, this.calcParams(cell.temperature, cell.fertility));
         }
 
-        this.stepExtinction();
         this.stepGrowth();
+        this.stepExtinction();
         this.stepSpread(cell, map);
 
         this.value = Math.max(0, this.value);
@@ -42,8 +42,8 @@ export default class Vegetation {
 
     stepGrowth() {
         let P = this.value;
-        P += this.changeRate * P * (1 - P / (this.max + 1e-5));
-        this.value = P;
+        P += this.changeRate * P * (1 - P / (this.max + 1e-2));
+        this.value = Math.max(P, 1e-2);
     }
 
     stepExtinction() {
@@ -90,7 +90,7 @@ export default class Vegetation {
 
     calcParams(t, f) {
         let G = this.gauss;
-        let max = (1 + Math.min(0, 0.06 * (t - 15)) - Math.max(0, 0.0500 * (t - 32))) * G(f, 1, 0.5);
+        let max = (100 + Math.min(0, 6 * (t - 15)) - Math.max(0, 5 * (t - 32))) * G(f, 1, 0.5);
         return { max: Math.max(0, max) }
     }
 
@@ -100,16 +100,16 @@ export default class Vegetation {
 
     getBiomeVegetationDefaults() {
         switch (this.biome) {
-            case "Desert":      return { max: 0.20 };
-            case "Steppe":      return { max: 0.15 }
-            case "Tundra":      return { max: 0.10 };
-            case "Savanna":     return { max: 0.40 };
-            case "Grassland":   return { max: 0.30 };
-            case "Taiga":       return { max: 0.20 };
-            case "Jungle":      return { max: 0.90 };
-            case "Forest":      return { max: 0.75 };
-            case "Boreal":      return { max: 0.60 };
-            default:            return { max: 0.00 };
+            case "Desert":      return { max: 20 };
+            case "Steppe":      return { max: 15 }
+            case "Tundra":      return { max: 10 };
+            case "Savanna":     return { max: 40 };
+            case "Grassland":   return { max: 30 };
+            case "Taiga":       return { max: 20 };
+            case "Jungle":      return { max: 90 };
+            case "Forest":      return { max: 75 };
+            case "Boreal":      return { max: 60 };
+            default:            return { max:  0 };
         }
     }
 }

@@ -68,6 +68,7 @@ export default class MapGenerator {
             this.smooth(fertilityMap, 0.6);
             this.amplify(fertilityMap, 0.2, 0.5);
         }
+        this.smooth(fertilityMap, 0.2);
         this.clamp(fertilityMap, 0, 1);
 
         let offsetMap = this.random2D(width, height, -Math.PI * 2, Math.PI * 2);

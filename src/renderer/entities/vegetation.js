@@ -34,8 +34,8 @@ export default class Vegetation {
     }
 
     updatePos() {
-        const veg = Math.min(this.value, 1);
-        const s = 0.2 + 0.8 * veg;
+        const veg = Math.min(this.value, 100);
+        const s = 0.2 + 0.008 * veg;
         const scaleMatrix = new THREE.Matrix4().makeScale(s, s, 1);
         const translateMatrix = new THREE.Matrix4().makeTranslation(
             this.position.x,
@@ -49,8 +49,8 @@ export default class Vegetation {
     }
 
     updateColor() {
-        const veg = Math.min(this.value, 1);
-        const cf = 1 - 0.8 * veg;
+        const veg = Math.min(this.value, 100);
+        const cf = 1 - 0.008 * veg;
         this.renderColor = this.colors.base.clone().multiplyScalar(cf);
     }
 }

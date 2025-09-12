@@ -29,7 +29,7 @@ export default class Cell {
         if (this.isWater) {
             this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, 0);
         } else {
-            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, Math.random() < 0.05 ? 0.02 : 0);
+            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, Math.random() < 0.05 ? 1 : 0);
         }
     }
 
@@ -99,7 +99,7 @@ export default class Cell {
                 Elevation: `${this.elevation.toFixed(0)}m`,
                 Temperature: `${this.temperature.toFixed(1)}&deg;C`,
                 Biome: this.biome,
-                Fertility: this.fertility.toFixed(2),
+                Fertility: `${(this.fertility * 100).toFixed(2)}%`,
                 Vegetation: this.vegetation.value.toFixed(2),
             };
         }
