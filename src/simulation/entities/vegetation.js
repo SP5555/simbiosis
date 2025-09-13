@@ -2,17 +2,17 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        changeRate: 0.008,      // sensitivity to logistic growth equation 
-        max: 50,                // max vegetation allowed (variable)
+        changeRate: 0.008,  // sensitivity to logistic growth equation 
+        max: 50,            // max vegetation allowed (variable)
 
-        extThreshold: 1,        // under this threshold, extinction timer starts
-        extInterval: 400,       // after this amount of ticks, extinction becomes possible
-        extProb: 0.004,         // per-tick probability of vegetation dying
+        extThreshold: 1,    // under this threshold, extinction timer starts
+        extInterval: 400,   // after this amount of ticks, extinction becomes possible
+        extProb: 0.004,     // per-tick probability of vegetation dying
 
-        sprThreshold: 30,       // above this threshold, spread timer starts
-        sprInterval: 300,       // after this amount of ticks, spread becomes possible
-        sprProb: 0.004,         // per-tick probability of spreading to random neighbor
-        sprAmt: 1,              // spread this amount of vegetation
+        sprThreshold: 30,   // above this threshold, spread timer starts
+        sprInterval: 300,   // after this amount of ticks, spread becomes possible
+        sprProb: 0.004,     // per-tick probability of spreading to random neighbor
+        sprAmt: 1,          // spread this amount of vegetation
     };
 
     constructor(temperature, fertility, biome="default", value=0, options = {}) {

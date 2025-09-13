@@ -39,9 +39,13 @@ export default class App {
         this.overlayAccumulator += dt;
         this.overlayFrameCount++;
 
-        while (this.simAccumulator >= this.fixedDt) {
+        // Prevent sim step pile-up (cap at 3 per frame)
+        let steps = 0;
+        const maxSteps = 8;
+        while (this.simAccumulator >= this.fixedDt && steps < maxSteps) {
             this.simulation.step();
             this.simAccumulator -= this.fixedDt;
+            steps++;
         }
 
         this.renderer.render(dt);

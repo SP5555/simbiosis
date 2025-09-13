@@ -14,27 +14,26 @@ export default class CameraController {
             0.1,
             1000
         );
-
-        this.position = new THREE.Vector3(0, 60, 40);
-        this.lookAtTarget = new THREE.Vector3(0, 0, 0);
-
+        
         // sensitivity settings
         this.panSen = 0.08;
         this.zoomSen = 1.6;
         this.parallaxSen = 0.2;
-
-        // pan settings
+        // damping effect strength
+        this.smoothFactor = 16.0;
+        
+        // pan (internals)
         this.panOffset = new THREE.Vector3(0, 0, 0);
         this.bounds = { width: 0, height: 0 };
         
-        // zoom settings
+        // zoom (internals)
         this.zoomFactor = 1.0;
         this.minZoom = 0.2;
         this.maxZoom = 1.0;
         this.zoomStep = 0.1;
 
-        // damping effect strength
-        this.smoothFactor = 0.15;
+        this.position = new THREE.Vector3(0, 60, 40);
+        this.lookAtTarget = new THREE.Vector3(0, 0, 0);
 
         this.currentPosition = this.position.clone();
         this.currentLookAt = this.lookAtTarget.clone();
@@ -50,9 +49,10 @@ export default class CameraController {
         });
     }
 
-    update() {
+    update(dt) {
         const { dx, dy } = this.input.consumeDelta();
         const scroll = -this.input.consumeScroll();
+        const { mouseX, mouseY } = this.input.getMousePos();
 
         // pan
         this.panOffset.x -= dx * this.zoomFactor * this.panSen;
@@ -67,8 +67,8 @@ export default class CameraController {
         }
 
         // parallax
-        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(this.input.mouseX * this.zoomFactor * this.parallaxSen);
-        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(this.input.mouseY * this.zoomFactor * this.parallaxSen);
+        const shiftX = new THREE.Vector3(1, 0, 0).multiplyScalar(mouseX * this.zoomFactor * this.parallaxSen);
+        const shiftY = new THREE.Vector3(0, -1, 1).multiplyScalar(mouseY * this.zoomFactor * this.parallaxSen);
         
         // apply pan
         const pannedPos = this.position.clone().add(this.panOffset);
@@ -81,8 +81,9 @@ export default class CameraController {
         const finalPosition = zoomedPos.add(shiftX).add(shiftY);
         const finalLookAt = pannedLookAt;
 
-        this.currentPosition.lerp(finalPosition, this.smoothFactor);
-        this.currentLookAt.lerp(finalLookAt, this.smoothFactor);
+        const sF = 1 - Math.exp(-dt * this.smoothFactor);
+        this.currentPosition.lerp(finalPosition, sF);
+        this.currentLookAt.lerp(finalLookAt, sF);
 
         this.camera.position.copy(this.currentPosition);
         this.camera.lookAt(this.currentLookAt);
