@@ -143,14 +143,14 @@ export default class Renderer {
         this.buildScene();
     }
 
-    render(dt) {
-        this.updateScene(dt);
+    render(coreDt, simDt) {
+        this.cameraController.update(coreDt);
+        this.updateScene(simDt);
         this.tilePicker.update();
         this.renderer.render(this.scene, this.cameraController.getCamera());
     }
     
     updateScene(dt) {
-        this.cameraController.update(dt);
         this.sun.update(this.simulation.yearProgress, dt);
         this.updateTiles(dt);
         this.updateInstancedMeshes();

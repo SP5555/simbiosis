@@ -5,6 +5,8 @@ import Renderer from '../renderer/renderer.js';
 import Simulation from '../simulation/simulation.js';
 import GuiManager from '../gui/gui-manager.js';
 import HudManager from '../hud/hud-manager.js';
+import { EVENTS } from '../utils/events.js';
+import { eventBus } from '../utils/event-emitters.js';
 
 export default class App {
     constructor() {
@@ -14,15 +16,30 @@ export default class App {
         this.gui = new GuiManager();
         this.hud = new HudManager();
 
-        // timing vars
         this.simSpeed = 60;
         this.fixedDt = 1 / this.simSpeed;
         this.simAccumulator = 0;
+        this.simSpeedMultiplier = 1;
 
         this.overlayAccumulator = 0;
         this.overlayFrameCount = 0;
 
         this.lastTime = 0;
+
+        this.userPaused = false;
+        this.systemPaused = false;
+        
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        document.addEventListener("visibilitychange", () => this.onVisibilityChange());
+        eventBus.on(EVENTS.TOGGLE_SIMULATION, (value) =>
+            this.updateUserPaused(value)
+        );
+        eventBus.on(EVENTS.SET_SIM_SPEED, (value) =>
+            this.setSimSpeed(value)
+        );
     }
 
     start() {
@@ -32,31 +49,74 @@ export default class App {
     }
 
     loop = (currentTime) => {
-        const dt = (currentTime - this.lastTime) / 1000;
+        // coreDt:  the "true" delta time since last frame in seconds.
+        //          Used for essential features that should always update
+        //          regardless of sim speed multiplier, like camera movement.
+        const coreDt = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
-        this.simAccumulator += dt;
-        this.overlayAccumulator += dt;
-        this.overlayFrameCount++;
+        // simDt:   the scaled delta time for the simulation and animations.
+        //          Takes into account user/system pause and simulation speed multiplier.
+        //          This ensures the simulation and certain animated objects
+        //          only progresses when allowed.
+        const simDt = (this.userPaused || this.systemPaused) ? 0 : coreDt * this.simSpeedMultiplier;
 
-        // Prevent sim step pile-up (cap at 3 per frame)
+        this.stepSimulation(simDt);
+        this.renderFrame(coreDt, simDt);
+        this.updateOverlay(coreDt);
+
+        requestAnimationFrame(this.loop);
+    };
+
+    onVisibilityChange = () => {
+        this.updateSystemPaused(document.hidden);
+    }
+
+    updateUserPaused(value) {
+        this.userPaused = value;
+        if (!value) {
+            this.lastTime = performance.now();
+        }
+    }
+
+    updateSystemPaused(value) {
+        this.systemPaused = value;
+        if (!value) {
+            this.lastTime = performance.now();
+        }
+    }
+
+    setSimSpeed(value) {
+        this.simSpeedMultiplier = value;
+    }
+
+    stepSimulation(simDt) {
+        if (this.userPaused || this.systemPaused) return;
+
+        this.simAccumulator += simDt;
+        // Prevent sim step pile-up
         let steps = 0;
-        const maxSteps = 8;
+        const maxSteps = 3 * this.simSpeedMultiplier;
         while (this.simAccumulator >= this.fixedDt && steps < maxSteps) {
             this.simulation.step();
             this.simAccumulator -= this.fixedDt;
             steps++;
         }
+    }
 
-        this.renderer.render(dt);
+    renderFrame(coreDt, simDt) {
+        if (this.systemPaused) return;
 
-        // update overlay FPS 8 times/sec
+        this.renderer.render(coreDt, simDt);
+    }
+
+    updateOverlay(coreDt) {
+        this.overlayAccumulator += coreDt;
+        this.overlayFrameCount++;
         if (this.overlayAccumulator >= 0.125) {
             this.hud.update(this.overlayAccumulator, this.overlayFrameCount);
             this.overlayAccumulator = 0;
             this.overlayFrameCount = 0;
         }
-
-        requestAnimationFrame(this.loop);
-    };
+    }
 }

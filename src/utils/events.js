@@ -1,8 +1,10 @@
 export const EVENTS = {
     // GUI events
-    GENERATE_MAP: "GUI:generateMap",
+    TOGGLE_SIMULATION: "GUI:toggleSimulation",
+    SET_SIM_SPEED: "GUI:setSimSpeed",
     APPLY_TERRAIN_FILTER: "GUI:applyTerrainFilter",
     TOGGLE_VEGETATION: "GUI:toggleVegetation",
+    GENERATE_MAP: "GUI:generateMap",
 
     // simulation events
     MAP_GENERATED: "sim:mapGenerated",
