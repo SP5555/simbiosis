@@ -1,6 +1,6 @@
 # Simbiosis
 
-Originally started as a hobby project, Simbiosis evolved into a small, modular simulation engine featuring procedural terrain generation, dynamic seasons, and vegetation.
+A hobby project, a small simulator featuring procedural terrain generation, dynamic seasons, and vegetation.
 
 Hosted here: [Simbiosis World](https://simbiosis-world.netlify.app)
 

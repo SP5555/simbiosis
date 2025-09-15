@@ -30,7 +30,7 @@ export default class TilePicker {
             if (intersects.length > 0) {
                 for (const inst of intersects) {
                     if (inst.distance < closestDist && inst.instanceId !== undefined) {
-                        const tile = manager.tiles[inst.instanceId];
+                        const tile = manager.instances[inst.instanceId];
                         if (tile) {
                             closestDist = inst.distance;
                             closestHit = inst;

@@ -1,7 +1,6 @@
 'use strict'
 
 import * as THREE from 'three';
-import Vegetation from '../entities/vegetation.js';
 import { hexToColor } from '../utils/color-utils.js';
 import {
     biomeFertilityToColor,
@@ -101,15 +100,12 @@ export class LandTile extends Tile {
     constructor(cell, position) {
         super(cell, position);
 
-        this.vegetation = new Vegetation(cell, this.position);
-
         this.colors.baseHex = biomeFertilityToColor(this.cell.biome, this.cell.fertility);
         this.colors.base = hexToColor(this.colors.baseHex);
     }
 
     updateAnimationState(dt) {
         this.updateColor();
-        this.vegetation.updateAnimationState(dt);
     }
 
     updateColor() {

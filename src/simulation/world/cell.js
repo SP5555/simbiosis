@@ -1,8 +1,5 @@
 'use strict'
 
-import Vegetation from "../entities/vegetation.js";
-// import Humidity from "./humidity.js";
-
 const SEA_LEVEL = 0.0;
 
 export default class Cell {
@@ -23,21 +20,15 @@ export default class Cell {
 
         this.biome = this.classifyBiome();
 
-        // this.humidity = new Humidity(this.isWater, Math.random() / 5);
-
-        this.vegetation = null;
-        if (this.isWater) {
-            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, 0);
-        } else {
-            this.vegetation = new Vegetation(this.temperature, this.fertility, this.biome, Math.random() < 0.05 ? 1 : 0);
-        }
+        this.flora = {};
     }
 
-    step(baseTemp, map) {
-        // if (this.isWater) return;
+    buildRefs(floraSpecies) {
+        this.flora = { ...floraSpecies };
+    }
+
+    step(baseTemp) {
         this.updateTemp(baseTemp);
-        this.vegetation.step(this, map);
-        // this.humidity.step(this, map);
     }
 
     elevationToTemp(baseTemp, elevation) {
@@ -64,6 +55,10 @@ export default class Cell {
         }
     }
 
+    getSpecies(speciesName) {
+        return this.flora[speciesName] ?? null;
+    }
+
     classifyBiome() {
         if (this.isWater) return "Ocean";
 
@@ -75,7 +70,7 @@ export default class Cell {
             if (e < 2800)   return "Steppe";
                             return "Tundra";
         } else if (f < 0.7) {
-            if (e < 1000)    return "Savanna";
+            if (e < 1000)   return "Savanna";
             if (e < 3200)   return "Grassland";
                             return "Taiga";
         } else {
@@ -100,7 +95,7 @@ export default class Cell {
                 Temperature: `${this.temperature.toFixed(1)}&deg;C`,
                 Biome: this.biome,
                 Fertility: `${(this.fertility * 100).toFixed(2)}%`,
-                Vegetation: this.vegetation.value.toFixed(2),
+                Vegetation: this.getSpecies("veg")?.value.toFixed(2),
             };
         }
     }

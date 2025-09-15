@@ -3,11 +3,11 @@
 import * as THREE from 'three';
 
 export default class Vegetation {
-    constructor(cell, position) {
-        this.cell = cell;
+    constructor(vegetation, position) {
+        this.simVegetation = vegetation;
         this.position = position;
-        this.value = cell.vegetation.value;
-        this.biome = cell.vegetation.biome;
+        this.value = this.simVegetation.value;
+        this.biome = this.simVegetation.biome;
 
         this.colors = {
             base: new THREE.Color().setHex(0x00cc00)
@@ -30,7 +30,7 @@ export default class Vegetation {
     }
 
     updateValue() {
-        this.value = this.cell.vegetation.value;
+        this.value = this.simVegetation.value;
     }
 
     updatePos() {

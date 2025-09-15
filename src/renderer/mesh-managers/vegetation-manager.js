@@ -1,13 +1,30 @@
 'use strict'
 
 import * as THREE from 'three';
+import Vegetation from '../entities/vegetation.js';
 
 export default class VegetationManager {
-    constructor() {}
+    constructor() {
+        this.instances = null;
+        this.count = null;
+    }
 
-    loadTiles(tiles) {
-        this.tiles = tiles.filter(tile => !tile.cell.isWater);
-        this.count = this.tiles.length;
+    buildFromFloraSystem(floraSystem) {
+        this.instances = [];
+        for (let y = 0; y < floraSystem.height; y++) {
+            for (let x = 0; x < floraSystem.width; x++) {
+                const veg = floraSystem.getSpecies("veg", x, y);
+                if (!veg) continue;
+                const cell = veg.cell;
+                const pos = new THREE.Vector3(
+                    cell.x + 0.5 - floraSystem.width/2,
+                    Math.max(cell.elevation, 0) / 600,
+                    cell.y + 0.5 - floraSystem.height/2
+                );
+                this.instances.push(new Vegetation(veg, pos));
+            }
+        }
+        this.count = this.instances.length;
     }
 
     buildInstancedMeshes() {
@@ -20,6 +37,12 @@ export default class VegetationManager {
         this.instancedMesh.castShadow = true;
         this.instancedMesh.receiveShadow = true;
     }
+    
+    updateAnimationState(dt) {
+        for (let inst of this.instances) {
+            inst.updateAnimationState(dt);
+        }
+    }
 
     updateInstancedMeshes() {
         if (!this.instancedMesh.visible) { return; }
@@ -29,8 +52,8 @@ export default class VegetationManager {
 
     updatePos() {
         let i = 0;
-        this.tiles.forEach(tile => {
-            this.instancedMesh.setMatrixAt(i, tile.vegetation.TSRMatrix);
+        this.instances.forEach(inst => {
+            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
             i++;
         });
         this.instancedMesh.instanceMatrix.needsUpdate = true;
@@ -38,8 +61,8 @@ export default class VegetationManager {
 
     updateColors() {
         let i = 0;
-        this.tiles.forEach(tile => {
-            let color = tile.vegetation.renderColor;
+        this.instances.forEach(inst => {
+            let color = inst.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             i++;
         });

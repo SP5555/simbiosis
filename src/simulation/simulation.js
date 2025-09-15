@@ -2,6 +2,8 @@
 
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
+import FaunaSystem from './entities/fauna-system.js';
+import FloraSystem from './entities/flora-system.js';
 import MapGenerator from './world/map-generator.js';
 
 export default class Simulation {
@@ -23,16 +25,23 @@ export default class Simulation {
         this.yearProgress = 0;
         this.baseTemp = 0;
         
-        // event subscriptions
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
         eventBus.on(EVENTS.GENERATE_MAP, (params) => {
             this.setStartSeason(params.startSeason);
             this.generateMap(params.width, params.height, params.expand, params.seed);
-        });
+        });    
     }
 
     generateMap(width, height, expand, seed = null) {
         this.time = 0;
         this.map = MapGenerator.generate(width, height, expand, seed, this.baseTemp);
+        this.floraSystem = new FloraSystem(this.map);
+        this.faunaSystem = new FaunaSystem(this.map);
+        
+        this.map.buildRefs(this.floraSystem);
 
         eventBus.emit(EVENTS.MAP_GENERATED, this.map);
     }
@@ -85,5 +94,7 @@ export default class Simulation {
         this.updateBaseTemp();
 
         this.map.step(this.baseTemp);
+        this.floraSystem.step();
+        this.faunaSystem.step();
     }
 }

@@ -1,13 +1,32 @@
 'use strict'
 
 import * as THREE from 'three';
+import { WaterTile } from '../world/tile.js';
 
 export default class WaterTileManager {    
-    constructor() {}
-    
-    loadTiles(tiles) {
-        this.tiles = tiles.filter(tile => tile.cell.isWater);
-        this.count = this.tiles.length;
+    constructor() {
+        this.instances = null;
+        this.count = null;
+        this.filter = null;
+    }
+
+    buildFromMap(map) {
+        this.instances = [];
+
+        for (let y = 0; y < map.height; y++) {
+            for (let x = 0; x < map.width; x++) {
+                const cell = map.getCell(x, y);
+                if (!cell.isWater) continue;
+                const position = new THREE.Vector3(
+                    cell.x + 0.5 - map.width / 2,
+                    Math.max(cell.elevation, 0) / 600,
+                    cell.y + 0.5 - map.height / 2,
+                );
+                this.instances.push(new WaterTile(cell, position));
+            }
+        }
+
+        this.count = this.instances.length;
     }
 
     buildInstancedMeshes() {
@@ -20,6 +39,19 @@ export default class WaterTileManager {
         this.instancedMesh.castShadow = true;
         this.instancedMesh.receiveShadow = true;
     }
+
+    mapFilterChange(filterName) {
+        this.filter = filterName;
+        for (let inst of this.instances) {
+            inst.filterChange(filterName);
+        }
+    }
+
+    updateAnimationState(dt) {
+        for (let inst of this.instances) {
+            inst.updateAnimationState(dt);
+        }
+    }
     
     updateInstancedMeshes() {
         this.updatePos();
@@ -28,8 +60,8 @@ export default class WaterTileManager {
 
     updatePos() {
         let i = 0;
-        this.tiles.forEach(tile => {
-            this.instancedMesh.setMatrixAt(i, tile.TSRMatrix);
+        this.instances.forEach(inst => {
+            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
             i++;
         });
         this.instancedMesh.instanceMatrix.needsUpdate = true;
@@ -37,8 +69,8 @@ export default class WaterTileManager {
 
     updateColors() {
         let i = 0;
-        this.tiles.forEach(tile => {
-            let color = tile.renderColor;
+        this.instances.forEach(inst => {
+            let color = inst.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
             i++;
         });

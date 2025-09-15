@@ -1,10 +1,9 @@
 'use strict'
 
 import * as THREE from 'three';
-import { LandTile, WaterTile } from './world/tile.js';
-import VegetationManager from './mesh-managers/vegetation-manager.js';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
+import VegetationManager from './mesh-managers/vegetation-manager.js';
 import TilePicker from '../utils/tile-picker.js';
 import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
@@ -57,15 +56,7 @@ export default class Renderer {
         )
         this.hoveredTile = null;
 
-        this.filter = null;
-
-        // event subscriptions
         this.initializeEventListeners();
-
-        // ===== simulation setup =====
-        if (this.simulation.map) {
-            this.buildScene();
-        }
     }
 
     initializeEventListeners() {
@@ -85,42 +76,23 @@ export default class Renderer {
         );
     }
 
-    buildTiles() {
-        const map = this.simulation.map;
-        this.tiles = [];
-
-        for (let x = 0; x < map.width; x++) {
-            for (let y = 0; y < map.height; y++) {
-                const cell = map.getCell(x, y);
-
-                let position = new THREE.Vector3(
-                    cell.x + 0.5 - map.width / 2,
-                    Math.max(cell.elevation, 0) / 600,
-                    cell.y + 0.5 - map.height / 2,
-                )
-
-                const tile = cell.isWater
-                    ? new WaterTile(cell, position)
-                    : new LandTile(cell, position);
-                this.tiles.push(tile);
-            }
-        }
-
-        eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, { width: map.width, height: map.height });
-    }
-
-    buildInstancedMeshes() {
-        this.landTileManager.loadTiles(this.tiles);
-        this.waterTileManager.loadTiles(this.tiles);
-        this.vegeManager.loadTiles(this.tiles);
+    buildScene() {
+        this.landTileManager.buildFromMap(this.simulation.map);
+        this.waterTileManager.buildFromMap(this.simulation.map);
+        this.vegeManager.buildFromFloraSystem(this.simulation.floraSystem);
 
         this.landTileManager.buildInstancedMeshes();
         this.waterTileManager.buildInstancedMeshes();
         this.vegeManager.buildInstancedMeshes();
-
+        
         this.scene.add(this.landTileManager.getDrawable());
         this.scene.add(this.waterTileManager.getDrawable());
         this.scene.add(this.vegeManager.getDrawable());
+        
+        eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, {
+            width: this.simulation.map.width,
+            height: this.simulation.map.height
+        });
     }
 
     clearScene() {
@@ -131,11 +103,6 @@ export default class Renderer {
         this.landTileManager.dispose();
         this.waterTileManager.dispose();
         this.vegeManager.dispose();
-    }
-
-    buildScene() {
-        this.buildTiles();
-        this.buildInstancedMeshes();
     }
     
     rebuildScene() {
@@ -152,14 +119,14 @@ export default class Renderer {
     
     updateScene(dt) {
         this.sun.update(this.simulation.yearProgress, dt);
-        this.updateTiles(dt);
+        this.updateAnimationState(dt);
         this.updateInstancedMeshes();
     }
 
-    updateTiles(dt) {
-        for (let tile of this.tiles) {
-            tile.updateAnimationState(dt);
-        }
+    updateAnimationState(dt) {
+        this.landTileManager.updateAnimationState(dt);
+        this.waterTileManager.updateAnimationState(dt);
+        this.vegeManager.updateAnimationState(dt);
     }
 
     updateInstancedMeshes() {
@@ -177,10 +144,8 @@ export default class Renderer {
     }
 
     mapFilterChange(filterName) {
-        this.filter = filterName;
-        for (let tile of this.tiles) {
-            tile.filterChange(filterName);
-        }
+        this.landTileManager.mapFilterChange(filterName);
+        this.waterTileManager.mapFilterChange(filterName);
     }
 
     toggleVegetation(visible) {

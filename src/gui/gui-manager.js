@@ -18,15 +18,11 @@ export default class GuiManager {
         this.simPauseParams = { paused: false };
         this.simCtrlFolder.add(this.simPauseParams, 'paused')
             .name("Pause Simulation")
-            .onChange((value) => {
-                eventBus.emit(EVENTS.TOGGLE_SIMULATION, value);
-            });
+            .onChange((value) => eventBus.emit(EVENTS.TOGGLE_SIMULATION, value));
         this.simSpeedParams = { speed: 1 };
         this.simCtrlFolder.add(this.simSpeedParams, 'speed', { "1x": 1, "2x": 2, "3x": 3, "5x": 5, "10x": 10 })
             .name("Simulation Speed")
-            .onChange((value) => {
-                eventBus.emit(EVENTS.SET_SIM_SPEED, value);
-            });
+            .onChange((value) => eventBus.emit(EVENTS.SET_SIM_SPEED, value));
         this.simCtrlFolder.open();
 
         // --- world settings ---

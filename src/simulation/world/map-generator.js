@@ -18,7 +18,7 @@ export default class MapGenerator {
         }
 
         // ===== base elevation =====
-        let elevationMap = this.random2D(width, height, -2400, 3000);
+        let elevationMap = this.random2D(width, height, -2400, 3600);
         this.smooth(elevationMap);
         this.amplify(elevationMap, 0.3, 0.0);
         for ( let i = 0; i < expand; i++ ) {
@@ -70,7 +70,8 @@ export default class MapGenerator {
         }
         this.smooth(fertilityMap, 0.2);
         this.clamp(fertilityMap, 0, 1);
-
+        
+        // ===== animation offset =====
         let offsetMap = this.random2D(width, height, -Math.PI * 2, Math.PI * 2);
         this.smooth(offsetMap);
         this.amplify(offsetMap, 0.2, 0);
@@ -81,8 +82,6 @@ export default class MapGenerator {
             this.amplify(offsetMap, 0.1, 0);
         }
         for ( let i = 0; i < 2; i++ ) this.smooth(offsetMap, 0.2);
-
-        // ===== animation offset =====
 
         let { gradX, gradY } = this.computeGradient(elevationMap);
         return this.constructMap(elevationMap, fertilityMap, { gradX, gradY }, baseTemp, offsetMap);
