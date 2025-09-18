@@ -2,7 +2,7 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        changeRate: 0.008,  // sensitivity to logistic growth equation 
+        changeRate: 0.005,  // sensitivity to logistic growth equation 
         max: 50,            // max vegetation allowed (variable)
 
         extThreshold: 1,    // under this threshold, extinction timer starts

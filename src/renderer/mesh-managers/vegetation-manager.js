@@ -2,11 +2,21 @@
 
 import * as THREE from 'three';
 import Vegetation from '../entities/vegetation.js';
+import { eventBus } from '../../utils/event-emitters.js';
+import { EVENTS } from '../../utils/events.js';
 
 export default class VegetationManager {
     constructor() {
         this.instances = null;
         this.count = null;
+
+        this.initializeEventListeners();
+    }
+
+    initializeEventListeners() {
+        eventBus.on(EVENTS.TOGGLE_VEGETATION, (visible) =>
+            this.toggleVisibility(visible)
+        );
     }
 
     buildFromFloraSystem(floraSystem) {

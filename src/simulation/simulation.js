@@ -4,6 +4,8 @@ import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 import FaunaSystem from './entities/fauna-system.js';
 import FloraSystem from './entities/flora-system.js';
+import { interpolateStops } from './utils/utils.js';
+import { SEASON_TEMP_STOPS } from './world/data.js';
 import MapGenerator from './world/map-generator.js';
 
 export default class Simulation {
@@ -12,7 +14,6 @@ export default class Simulation {
         this.ticksPerDay = 900;  // IRL 15s  = sim 1d
         this.daysPerYear = 20;   // IRL  5m  = sim 1y
 
-        this.baseTemps = [6, 26, 20, 0];
         this.seasons = ["Spring", "Summer", "Fall", "Winter"];
 
         this.currentDate = -1;
@@ -61,7 +62,7 @@ export default class Simulation {
 
         const seasonIndex = Math.floor(dayOfYear / seasonLength);
         const nextSeasonIndex = (seasonIndex + 1) % 4;
-        this.seasonProgress = (dayOfYear % seasonLength) / seasonLength;
+        // this.seasonProgress = (dayOfYear % seasonLength) / seasonLength;
         this.yearProgress = dayOfYear / this.daysPerYear;
 
         const day = Math.floor(dayOfYear) + 1;
@@ -82,9 +83,7 @@ export default class Simulation {
     }
 
     updateBaseTemp() {
-        const t1 = this.baseTemps[this.currentSeasonIdx];
-        const t2 = this.baseTemps[this.nextSeasonIdx];
-        this.baseTemp = t1 + (t2 - t1) * this.seasonProgress;
+        this.baseTemp = interpolateStops(this.yearProgress, SEASON_TEMP_STOPS);
     }
 
     step() {

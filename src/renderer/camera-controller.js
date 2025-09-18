@@ -28,8 +28,8 @@ export default class CameraController {
         
         // zoom (internals)
         this.zoomFactor = 1.0;
-        this.minZoom = 0.2;
-        this.maxZoom = 1.0;
+        this.minZoom = 0.4;
+        this.maxZoom = 1.4;
         this.zoomStep = 0.1;
 
         this.position = new THREE.Vector3(0, 60, 40);

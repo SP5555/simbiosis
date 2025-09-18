@@ -65,9 +65,6 @@ export default class Renderer {
         eventBus.on(EVENTS.APPLY_TERRAIN_FILTER, (filterName) =>
             this.mapFilterChange(filterName)
         );
-        eventBus.on(EVENTS.TOGGLE_VEGETATION, (visible) =>
-            this.toggleVegetation(visible)
-        );
         eventBus.on(EVENTS.MAP_GENERATED, (map) =>
             this.rebuildScene()
         );
@@ -146,10 +143,6 @@ export default class Renderer {
     mapFilterChange(filterName) {
         this.landTileManager.mapFilterChange(filterName);
         this.waterTileManager.mapFilterChange(filterName);
-    }
-
-    toggleVegetation(visible) {
-        this.vegeManager.toggleVisibility(visible);
     }
 
     onResize() {
