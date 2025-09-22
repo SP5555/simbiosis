@@ -68,7 +68,7 @@ export default class Vegetation {
                 let dx = Math.floor(Math.random() * 5) - 2;
                 let dy = Math.floor(Math.random() * 5) - 2;
                 if (dx !== 0 || dy !== 0) {
-                    let neighbor = this.floraSystem.getSpecies("veg", this.cell.x + dx, this.cell.y + dy);
+                    let neighbor = this.floraSystem.getSpeciesAt("veg", this.cell.x + dx, this.cell.y + dy);
                     if (neighbor && !neighbor.isWater) {
                         let accepted = neighbor.add(this.sprAmt);
                         this.value -= accepted;

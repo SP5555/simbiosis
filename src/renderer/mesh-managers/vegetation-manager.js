@@ -21,20 +21,21 @@ export default class VegetationManager {
 
     buildFromFloraSystem(floraSystem) {
         this.instances = [];
+
         for (let y = 0; y < floraSystem.height; y++) {
             for (let x = 0; x < floraSystem.width; x++) {
-                const veg = floraSystem.getSpecies("veg", x, y);
-                if (!veg) continue;
-                const cell = veg.cell;
+                const inst = floraSystem.getSpeciesAt("veg", x, y);
+                if (!inst) continue;
+                const cell = inst.cell;
                 const pos = new THREE.Vector3(
                     cell.x + 0.5 - floraSystem.width/2,
                     Math.max(cell.elevation, 0) / 600,
                     cell.y + 0.5 - floraSystem.height/2
                 );
-                this.instances.push(new Vegetation(veg, pos));
+                this.instances.push(new Vegetation(inst, pos));
             }
         }
-        this.count = this.instances.length;
+        this.count = floraSystem.getCountOf("veg");
     }
 
     buildInstancedMeshes() {

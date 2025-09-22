@@ -14,46 +14,60 @@ export default class FloraSystem {
     }
 
     initFlora() {
-        this.initSpecies("veg", (cell) => {
+        this.addSpecies("veg", (cell) => {
             if (!cell.isWater)
                 return new Vegetation(this, cell, Math.random() < 0.05 ? 1 : 0);
         });
     }
 
-    initSpecies(speciesName, factoryFn) {
-        const grid = new Array(this.height);
+    addSpecies(name, factoryFn) {
+        const instances = new Array(this.width * this.height);
+        let count = 0;
+
         for (let y = 0; y < this.height; y++) {
-            grid[y] = new Array(this.width);
             for (let x = 0; x < this.width; x++) {
+                const idx = this._index(x, y);
                 const cell = this.map.getCell(x, y);
-                grid[y][x] = factoryFn(cell);
+                const obj = factoryFn(cell);
+                instances[idx] = obj;
+                if (obj) count++;
             }
         }
-        this.species[speciesName] = grid;
+
+        this.species[name] = {
+            meta: { count },
+            instances,
+        };
     }
 
-    step() {
-        for (const speciesName in this.species) {
-            const grid = this.species[speciesName];
-            for (let y = 0; y < this.height; y++) {
-                for (let x = 0; x < this.width; x++) {
-                    if (grid[y][x]) grid[y][x].step();
-                }
-            }
-        }
-    }
-
-    getSpecies(speciesName, x, y) {
-        const grid = this.species[speciesName];
-        if (!grid || x < 0 || x >= this.width || y < 0 || y >= this.height) return null;
-        return grid[y][x];
+    getSpeciesAt(speciesName, x, y) {
+        const species = this.species[speciesName];
+        if (!species || x < 0 || x >= this.width || y < 0 || y >= this.height) return null;
+        return species.instances[this._index(x, y)];
     }
 
     getAllAt(x, y) {
         const result = {};
         for (const speciesName in this.species) {
-            result[speciesName] = this.getSpecies(speciesName, x, y);
+            result[speciesName] = this.getSpeciesAt(speciesName, x, y);
         }
         return result;
+    }
+
+    getCountOf(speciesName) {
+        return this.species[speciesName]?.meta.count || 0;
+    }
+
+    step() {
+        for (const speciesName in this.species) {
+            const { instances } = this.species[speciesName];
+            for (let i = 0; i < instances.length; i++) {
+                if (instances[i]) instances[i].step();
+            }
+        }
+    }
+
+    _index(x, y) {
+        return y * this.width + x;
     }
 }

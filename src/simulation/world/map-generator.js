@@ -191,7 +191,7 @@ export default class MapGenerator {
         for (let y = 0; y < newHeight; y++) {
             const row = [];
             for (let x = 0; x < newWidth; x++) {
-                row.push(map[Math.floor(y / 2)][ Math.floor(x / 2)]);
+                row.push(map[Math.floor(y / 2)][Math.floor(x / 2)]);
             }
             newMap.push(row);
         }
@@ -219,21 +219,21 @@ export default class MapGenerator {
     
     static constructMap(elevationMap, fertilityMap, gradientMaps, baseTemp, offsetMap) {
         const { gradX, gradY } = gradientMaps;
-        let cells = [];
 
-        let width = elevationMap.metaData.width;
-        let height = elevationMap.metaData.height;
+        const width = elevationMap.metaData.width;
+        const height = elevationMap.metaData.height;
+        const cells = new Array(width * height);
         for (let y = 0; y < height; y++) {
-            const row = [];
             for (let x = 0; x < width; x++) {
                 const elevation = elevationMap[y][x];
                 const fertility = fertilityMap[y][x];
                 const animOffset = offsetMap[y][x];
                 const gradient = new THREE.Vector2(gradX[y][x], gradY[y][x]);
-                row.push(new Cell(x, y, elevation, fertility, gradient, baseTemp, animOffset));
+                const idx = y * width + x;
+                cells[idx] = new Cell(x, y, elevation, fertility, gradient, baseTemp, animOffset);
             }
-            cells.push(row);
         }
+
         return new Map(width, height, cells);
     }
 }
