@@ -3,16 +3,16 @@
 import * as THREE from 'three';
 import { hexToColor } from '../utils/color-utils.js';
 import {
-    biomeFertilityToColor,
+    biomeFertilityToColorHex,
     landTileColor,
     seaDepthToColorHex,
     waterTileColor,
 } from './colors/tile-color-core.js';
-import { SineAnimation } from '../animation/animation-state.js';
+import { AbsSineAnimation, SineAnimation } from '../animation/animation-state.js';
 
 class Tile {
     constructor(cell, position) {
-        this.cell = cell;
+        this.simCell = cell;
         this.position = position;
 
         this.TSRMatrix = new THREE.Matrix4();
@@ -26,10 +26,20 @@ class Tile {
         this.renderColor = new THREE.Color(0, 0, 0);
 
         this.hovered = false;
+        this.selected = false;
+
+        this.selectedAnim = new AbsSineAnimation({
+            speed: 2,
+            amplitude: 0.2,
+        })
     }
 
     setHovered(hovered) {
         this.hovered = hovered;
+    }
+
+    setSelected(selected) {
+        this.selected = selected;
     }
 
     updateAnimationState(dt) {
@@ -49,11 +59,20 @@ class Tile {
         throw new Error("updateColor() must be implemented in subclass");
     }
 
-    updateHoverState() {
-        if (this.hovered) {
-            this.renderColor.r = Math.min(1, this.renderColor.r + 0.3);
-            this.renderColor.g = Math.min(1, this.renderColor.g + 0.3);
-            this.renderColor.b = Math.min(1, this.renderColor.b + 0.3);
+    updateSelectedState() {
+        if (this.selected) {
+            const swing = this.selectedAnim.value();
+            this.renderColor.r = Math.min(1, this.renderColor.r + swing);
+            this.renderColor.g = Math.min(1, this.renderColor.g + swing);
+            this.renderColor.b = Math.min(1, this.renderColor.b + swing);
+        }
+    }
+
+    updateHoveredState() {
+        if (!this.selected && this.hovered) {
+            this.renderColor.r = Math.min(1, this.renderColor.r + 0.2);
+            this.renderColor.g = Math.min(1, this.renderColor.g + 0.2);
+            this.renderColor.b = Math.min(1, this.renderColor.b + 0.2);
         }
     }
 }
@@ -62,37 +81,39 @@ export class WaterTile extends Tile {
     constructor(cell, position) {
         super(cell, position);
 
-        this.colors.baseHex = seaDepthToColorHex(this.cell.elevation);
+        this.colors.baseHex = seaDepthToColorHex(this.simCell.elevation);
         this.colors.base = hexToColor(this.colors.baseHex);
 
-        this.animation = new SineAnimation({
+        this.waveAnim = new SineAnimation({
             speed: -1,
             amplitude: 0.25,
             offset: (cell.elevation / 250) + cell.animOffset + Math.random() * 2,
         })
     }
 
-    updateAnimationState(dt) {
-        this.animation.update(dt);
+    updateAnimationState(coreDt, simDt) {
+        this.selectedAnim.update(coreDt);
+        this.waveAnim.update(simDt);
         this.updatePos();
         this.updateColor();
     }
 
     updateAnimationProperties(dt) {        
-        const anim = this.animation;
+        const anim = this.waveAnim;
         anim.elapsed += anim.speed * dt;
         if (anim.elapsed > TWO_PI) anim.elapsed -= TWO_PI;
         if (anim.elapsed < 0) anim.elapsed += TWO_PI;
     }
 
     updatePos() {
-        const wobble = this.animation.value();
+        const wobble = this.waveAnim.value();
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);
     }
 
     updateColor() {
         this.renderColor = waterTileColor(this);
-        this.updateHoverState();
+        this.updateSelectedState();
+        this.updateHoveredState();
     }
 }
 
@@ -100,16 +121,18 @@ export class LandTile extends Tile {
     constructor(cell, position) {
         super(cell, position);
 
-        this.colors.baseHex = biomeFertilityToColor(this.cell.biome, this.cell.fertility);
+        this.colors.baseHex = biomeFertilityToColorHex(this.simCell.biome, this.simCell.fertility);
         this.colors.base = hexToColor(this.colors.baseHex);
     }
 
-    updateAnimationState(dt) {
+    updateAnimationState(coreDt, simDt) {
+        this.selectedAnim.update(coreDt);
         this.updateColor();
     }
 
     updateColor() {
         this.renderColor = landTileColor(this);
-        this.updateHoverState();
+        this.updateSelectedState();
+        this.updateHoveredState();
     }
 }

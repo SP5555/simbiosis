@@ -49,9 +49,9 @@ export default class VegetationManager {
         this.instancedMesh.receiveShadow = true;
     }
     
-    updateAnimationState(dt) {
+    updateAnimationState(coreDt, simDt) {
         for (let inst of this.instances) {
-            inst.updateAnimationState(dt);
+            inst.updateAnimationState(coreDt, simDt);
         }
     }
 

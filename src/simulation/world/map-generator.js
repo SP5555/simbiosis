@@ -52,11 +52,11 @@ export default class MapGenerator {
             this.smooth(macroNoise, 0.8);
             this.amplify(macroNoise, 0.2, 0.5);
         }
-        for ( let i = 0; i < 8; i++ ) this.smooth(macroNoise, 1.0);
-        for ( let i = 0; i < 4; i++ ) this.smoothByMap(elevationMap, macroNoise);
+        for ( let i = 0; i < 6; i++ ) this.smooth(macroNoise, 1.0);
+        for ( let i = 0; i < 2; i++ ) this.smoothByMap(elevationMap, macroNoise);
 
         // final uniform smooth
-        for ( let i = 0; i < 3; i++ ) this.smooth(elevationMap, 0.4);
+        for ( let i = 0; i < 4; i++ ) this.smooth(elevationMap, 0.3);
 
         // ===== ground fertility =====
         let fertilityMap = this.random2D(width, height, 0, 1.0);

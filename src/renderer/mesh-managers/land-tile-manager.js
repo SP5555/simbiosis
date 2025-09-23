@@ -49,9 +49,9 @@ export default class LandTileManager {
         }
     }
 
-    updateAnimationState(dt) {
+    updateAnimationState(coreDt, simDt) {
         for (let inst of this.instances) {
-            inst.updateAnimationState(dt);
+            inst.updateAnimationState(coreDt, simDt);
         }
     }
 

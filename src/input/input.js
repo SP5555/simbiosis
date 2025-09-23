@@ -15,6 +15,10 @@ export default class Input {
         this.scrollDelta = 0;
         this.lastTouchDist = null;
 
+        this.clickCallbacks = [];
+
+        this.isValidClick = false;
+
         // --- Attach events ---
         this.initMouseEvents();
         this.initTouchEvents();
@@ -35,12 +39,19 @@ export default class Input {
     // --------------------
     // Mouse event handlers
     // --------------------
-    onMouseDown() {
+    onMouseDown(e) {
         this.mouseDown = true;
+
+        this.isValidClick = true;
     }
 
-    onMouseUp() {
+    onMouseUp(e) {
         this.mouseDown = false;
+
+        if (this.isValidClick) {
+            this.clickCallbacks.forEach(cb => cb(e));
+        }
+
         this.dx = 0;
         this.dy = 0;
     }
@@ -49,6 +60,8 @@ export default class Input {
         if (this.mouseDown) {
             this.dx = e.clientX - this.lastX;
             this.dy = e.clientY - this.lastY;
+            const distSq = this.dx * this.dx + this.dy * this.dy;
+            if (distSq > 0) this.isValidClick = false;
         } else {
             this.dx = 0;
             this.dy = 0;
@@ -65,6 +78,10 @@ export default class Input {
 
     onWheel(e) {
         this.scrollDelta += Math.sign(e.deltaY);
+    }
+
+    onClick(cb) {
+        this.clickCallbacks.push(cb);
     }
 
     // --------------------

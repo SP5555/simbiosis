@@ -55,6 +55,7 @@ export default class Renderer {
             }
         )
         this.hoveredTile = null;
+        this.selectedTile = null;
 
         this.initializeEventListeners();
     }
@@ -70,6 +71,9 @@ export default class Renderer {
         );
         eventBus.on(EVENTS.TILE_HOVERED, (tile) =>
             this.updateHoveredTile(tile)
+        );
+        eventBus.on(EVENTS.TILE_SELECTED, (tile) =>
+            this.updateSelectedTile(tile)
         );
     }
 
@@ -109,21 +113,21 @@ export default class Renderer {
 
     render(coreDt, simDt) {
         this.cameraController.update(coreDt);
-        this.updateScene(simDt);
+        this.updateScene(coreDt, simDt);
         this.tilePicker.update();
         this.renderer.render(this.scene, this.cameraController.getCamera());
     }
     
-    updateScene(dt) {
-        this.sun.update(this.simulation.yearProgress, dt);
-        this.updateAnimationState(dt);
+    updateScene(coreDt, simDt) {
+        this.sun.update(this.simulation.yearProgress, simDt);
+        this.updateAnimationState(coreDt, simDt);
         this.updateInstancedMeshes();
     }
 
-    updateAnimationState(dt) {
-        this.landTileManager.updateAnimationState(dt);
-        this.waterTileManager.updateAnimationState(dt);
-        this.vegeManager.updateAnimationState(dt);
+    updateAnimationState(coreDt, simDt) {
+        this.landTileManager.updateAnimationState(coreDt, simDt);
+        this.waterTileManager.updateAnimationState(coreDt, simDt);
+        this.vegeManager.updateAnimationState(coreDt, simDt);
     }
 
     updateInstancedMeshes() {
@@ -138,6 +142,14 @@ export default class Renderer {
         }
         if (tile) tile.setHovered(true);
         this.hoveredTile = tile;
+    }
+
+    updateSelectedTile(tile) {
+        if (this.selectedTile && this.selectedTile !== tile) {
+            this.selectedTile.setSelected(false);
+        }
+        if (tile) tile.setSelected(true);
+        this.selectedTile = tile;
     }
 
     mapFilterChange(filterName) {

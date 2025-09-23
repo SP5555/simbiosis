@@ -10,7 +10,7 @@ export default class Vegetation {
         this.biome = this.simVegetation.biome;
 
         this.colors = {
-            base: new THREE.Color().setHex(0x00cc00)
+            base: new THREE.Color().setHex(0x00eb00)
         };
 
         this.rotationMatrix = new THREE.Matrix4().makeRotationX(- Math.PI / 2);
@@ -23,7 +23,7 @@ export default class Vegetation {
         this.TSRMatrix.multiply(translateMatrix).multiply(this.rotationMatrix);
     }
 
-    updateAnimationState(dt) {
+    updateAnimationState(coreDt, simDt) {
         this.updateValue();
         this.updatePos();
         this.updateColor();
@@ -50,7 +50,7 @@ export default class Vegetation {
 
     updateColor() {
         const veg = Math.min(this.value, 100);
-        const cf = 1 - 0.008 * veg;
+        const cf = Math.max(0, 1 - 0.008 * veg);
         this.renderColor = this.colors.base.clone().multiplyScalar(cf);
     }
 }

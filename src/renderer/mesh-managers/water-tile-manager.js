@@ -47,9 +47,9 @@ export default class WaterTileManager {
         }
     }
 
-    updateAnimationState(dt) {
+    updateAnimationState(coreDt, simDt) {
         for (let inst of this.instances) {
-            inst.updateAnimationState(dt);
+            inst.updateAnimationState(coreDt, simDt);
         }
     }
     

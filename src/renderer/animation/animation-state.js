@@ -8,8 +8,7 @@ class AnimationState {
     }
 
     update(dt) {
-        this.elapsed += this.speed * dt;
-        if (this.elapsed >= this.duration) this.elapsed -= this.duration;
+        this.elapsed = (this.elapsed + this.speed * dt) % this.duration;
         if (this.elapsed < 0) this.elapsed += this.duration;
     }
 }
@@ -24,5 +23,11 @@ export class SineAnimation extends AnimationState {
 
     value() {
         return Math.sin(this.elapsed + this.offset) * this.amplitude;
+    }
+}
+
+export class AbsSineAnimation extends SineAnimation {
+    value() {
+        return Math.abs(super.value());
     }
 }

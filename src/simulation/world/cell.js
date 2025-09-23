@@ -66,12 +66,12 @@ export default class Cell {
         const f = this.fertility;
 
         if (f < 0.3) {
-            if (e < 1250)   return "Desert";
-            if (e < 2800)   return "Steppe";
+            if (e < 1800)   return "Desert";
+            if (e < 3200)   return "Steppe";
                             return "Tundra";
         } else if (f < 0.7) {
             if (e < 1000)   return "Savanna";
-            if (e < 3200)   return "Grassland";
+            if (e < 3400)   return "Grassland";
                             return "Taiga";
         } else {
             if (e < 750)    return "Jungle";

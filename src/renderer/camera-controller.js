@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
+import { isMouseOverGUI } from '../utils/gui-utils.js';
 
 export default class CameraController {
     constructor(input) {
@@ -50,9 +51,15 @@ export default class CameraController {
     }
 
     update(dt) {
-        const { dx, dy } = this.input.consumeDelta();
-        const scroll = -this.input.consumeScroll();
+        let { dx, dy } = this.input.consumeDelta();
+        let scroll = -this.input.consumeScroll();
         const { mouseX, mouseY } = this.input.getMousePos();
+
+        if (isMouseOverGUI()) {
+            dx = 0;
+            dy = 0;
+            scroll = 0;
+        }
 
         // pan
         this.panOffset.x -= dx * this.zoomFactor * this.panSen;

@@ -16,6 +16,7 @@ export const EVENTS = {
 
     // tile picker events
     TILE_HOVERED: "tilePick:tileHovered",
+    TILE_SELECTED: "tilePick:tileSelected",
 
     // camera controller events
     CAMERA_UPDATED: "camCtrl:CameraUpdated",

@@ -11,10 +11,10 @@ export default class HudManager {
         this.yearEl = document.getElementById("simStatYear");
         this.seasonEl = document.getElementById("simStatSeason");
         this.fpsEl = document.getElementById("simStatFPS");
-        this.hoveredTileTableEl = document.getElementById("hoveredTileTable");
+        this.activeTileTableEl = document.getElementById("activeTileTable");
         
         this.weightedAvgFPS = 0;
-        this.hoveredTile = null;
+        this.activeTile = null;
 
         // event subscription
         eventBus.on(EVENTS.DATE_CHANGED, ({ day, year }) => {
@@ -23,14 +23,14 @@ export default class HudManager {
         eventBus.on(EVENTS.SEASON_CHANGED, ({ name }) => {
             this.updateSeason(name);
         });
-        eventBus.on(EVENTS.TILE_HOVERED, (tile) => {
-            this.updateHoveredTile(tile);
+        eventBus.on(EVENTS.TILE_SELECTED, (tile) => {
+            this.updateSelectedTile(tile);
         })
     }
 
     update(intervalTime, framesInInterval) {
         this.updateFPS(intervalTime, framesInInterval);
-        this.updateHoveredTileStats();
+        this.updateSelectedTileStats();
     }
 
     updateFPS(intervalTime, framesInInterval) {
@@ -48,29 +48,29 @@ export default class HudManager {
         this.seasonEl.textContent = name;
     }
 
-    updateHoveredTile(tile) {
-        this.hoveredTile = tile;
+    updateSelectedTile(tile) {
+        this.activeTile = tile;
     }
 
-    updateHoveredTileStats() {
-        this.hoveredTileTableEl.innerHTML = '';
+    updateSelectedTileStats() {
+        this.activeTileTableEl.innerHTML = '';
 
-        if (!this.hoveredTile) {
+        if (!this.activeTile) {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
             td.colSpan = 3;
-            td.textContent = "Nothing here";
+            td.textContent = "Click on something";
             tr.appendChild(td);
-            this.hoveredTileTableEl.appendChild(tr);
+            this.activeTileTableEl.appendChild(tr);
             return;
         }
 
-        const stats = this.hoveredTile.cell.getDisplayStats();
+        const stats = this.activeTile.simCell.getDisplayStats();
 
         for (const [label, value] of Object.entries(stats)) {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${label}</td><td>:</td><td>${value}</td>`;
-            this.hoveredTileTableEl.appendChild(tr);
+            this.activeTileTableEl.appendChild(tr);
         }
     }
 }
