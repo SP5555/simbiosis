@@ -28,9 +28,9 @@ export default class TilePicker {
         this.mouse.y = -this.input.mouseY;
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        let closestTile = null;
         let closestDist = Infinity;
         let closestHit = null;
+        let closestTile = null;
 
         for (const manager of Object.values(this.managers)) {
             const { dist, hit, tile } = this.getCollidingInstance(manager);

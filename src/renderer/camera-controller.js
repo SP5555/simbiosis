@@ -33,7 +33,7 @@ export default class CameraController {
         this.maxZoom = 1.4;
         this.zoomStep = 0.1;
 
-        this.position = new THREE.Vector3(0, 60, 40);
+        this.position = new THREE.Vector3(0, 60, 30);
         this.lookAtTarget = new THREE.Vector3(0, 0, 0);
 
         this.currentPosition = this.position.clone();
