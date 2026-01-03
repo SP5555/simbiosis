@@ -1,3 +1,5 @@
+'use strict'
+
 import * as THREE from 'three';
 import { eventBus } from './event-emitters.js';
 import { EVENTS } from './events.js';

@@ -1,3 +1,5 @@
+'use strict'
+
 export default class Humidity {
     static DEFAULTS = {
         sprThreshold: 0.0,      // above this threshold, spread timer starts

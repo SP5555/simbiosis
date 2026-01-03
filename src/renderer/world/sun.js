@@ -1,3 +1,5 @@
+'use strict'
+
 import * as THREE from 'three';
 import { interpolateColorStops } from '../utils/color-utils.js';
 import { SUN_COLOR_STOPS } from './colors/sun-color-data.js';

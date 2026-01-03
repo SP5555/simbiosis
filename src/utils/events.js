@@ -1,3 +1,5 @@
+'use strict'
+
 export const EVENTS = {
     // GUI events
     TOGGLE_SIMULATION: "GUI:toggleSimulation",

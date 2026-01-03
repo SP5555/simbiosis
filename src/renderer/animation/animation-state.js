@@ -1,3 +1,5 @@
+'use strict'
+
 import { TWO_PI } from "../../utils/utils.js";
 
 class AnimationState {

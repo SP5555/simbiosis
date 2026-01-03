@@ -82,21 +82,24 @@ export default class Cell {
 
     // only return string values
     getDisplayStats() {
-        if (this.isWater) {
-            return {
-                Location: `(${this.x},${this.y})`,
-                Elevation: `${this.elevation.toFixed(0)} m`,
-                Temperature: `${this.temperature.toFixed(1)}&deg;C`,
-            };
-        } else {
-            return {
-                Location: `(${this.x},${this.y})`,
-                Elevation: `${this.elevation.toFixed(0)}m`,
-                Temperature: `${this.temperature.toFixed(1)}&deg;C`,
-                Biome: this.biome,
-                Fertility: `${(this.fertility * 100).toFixed(2)}%`,
-                Vegetation: this.getSpecies("veg")?.value.toFixed(2),
-            };
+        let baseStats = {
+            Location: `(${this.x},${this.y})`,
+            Elevation: `${this.elevation.toFixed(0)}m`,
+            Temperature: `${this.temperature.toFixed(1)}°C`,
+        };
+
+        if (this.isWater) return baseStats;
+
+        baseStats.Biome = this.biome;
+        baseStats.Fertility = `${(this.fertility * 100).toFixed(2)}%`;
+
+        for (let speciesName in this.flora) {
+            const flora = this.flora[speciesName];
+            if (flora?.getDisplayStats) {
+                Object.assign(baseStats, flora.getDisplayStats());
+            }
         }
+
+        return baseStats;
     }
 }

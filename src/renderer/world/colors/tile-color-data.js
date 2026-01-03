@@ -1,3 +1,5 @@
+'use strict'
+
 export const SEA_DEPTH_COLOR_STOPS = [
     [-3000, 0x1426ac],
     [-1500, 0x2436cc],

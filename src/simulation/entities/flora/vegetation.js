@@ -115,4 +115,11 @@ export default class Vegetation {
             default:            return { max:  0 };
         }
     }
+
+    getDisplayStats() {
+        if (this.value <= 0) return null;
+        return {
+            [this.constructor.name]: this.value.toFixed(2)
+        };
+    }
 }

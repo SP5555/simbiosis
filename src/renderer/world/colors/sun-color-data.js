@@ -1,3 +1,5 @@
+'use strict'
+
 export const SUN_COLOR_STOPS = [
     [0.00, 0xffffb4], // SP
     [0.25, 0xffffe8], // SU
