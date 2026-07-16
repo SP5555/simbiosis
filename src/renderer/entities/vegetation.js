@@ -12,15 +12,22 @@ export default class Vegetation {
         this.colors = {
             base: new THREE.Color().setHex(0x00eb00)
         };
+        this.renderColor = new THREE.Color();
 
         this.rotationMatrix = new THREE.Matrix4().makeRotationX(- Math.PI / 2);
         this.TSRMatrix = new THREE.Matrix4();
-        const translateMatrix = new THREE.Matrix4().makeTranslation(
+        // scratch matrices reused every updatePos() call below instead of
+        // allocating fresh ones each time - with thousands of actively
+        // growing vegetation instances, that allocation added up
+        this._scaleMatrix = new THREE.Matrix4();
+        this._translateMatrix = new THREE.Matrix4();
+
+        this._translateMatrix.makeTranslation(
             this.position.x,
             this.position.y,
             this.position.z,
         );
-        this.TSRMatrix.multiply(translateMatrix).multiply(this.rotationMatrix);
+        this.TSRMatrix.copy(this._translateMatrix).multiply(this.rotationMatrix);
 
         // growth only needs to be re-rendered when it actually moved
         // meaningfully; `dirty` is only ever cleared by whoever flushes it
@@ -49,21 +56,21 @@ export default class Vegetation {
     updatePos() {
         const veg = Math.min(this.value, 100);
         const s = 0.2 + 0.008 * veg;
-        const scaleMatrix = new THREE.Matrix4().makeScale(s, s, 1);
-        const translateMatrix = new THREE.Matrix4().makeTranslation(
+        this._scaleMatrix.makeScale(s, s, 1);
+        this._translateMatrix.makeTranslation(
             this.position.x,
             this.position.y + (veg > 0 ? 1.05 : 0),
             this.position.z
         );
-        this.TSRMatrix = new THREE.Matrix4()
-            .multiply(translateMatrix)
+        this.TSRMatrix
+            .copy(this._translateMatrix)
             .multiply(this.rotationMatrix)
-            .multiply(scaleMatrix);
+            .multiply(this._scaleMatrix);
     }
 
     updateColor() {
         const veg = Math.min(this.value, 100);
         const cf = Math.max(0, 1 - 0.008 * veg);
-        this.renderColor = this.colors.base.clone().multiplyScalar(cf);
+        this.renderColor.copy(this.colors.base).multiplyScalar(cf);
     }
 }

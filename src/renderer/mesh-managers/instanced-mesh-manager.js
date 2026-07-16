@@ -64,13 +64,18 @@ export default class InstancedMeshManager {
     }
 
     // variant for managers whose instances track their own `colorDirty` flag
-    // (skips both the CPU copy and the GPU upload for anything unchanged)
+    // (skips both the CPU copy and the GPU upload for anything unchanged).
+    // Uses addUpdateRange so only the changed entries are re-uploaded to the
+    // GPU instead of the whole buffer — with thousands of instances and only
+    // a fraction dirty on a given frame, a full-buffer upload every frame is
+    // the actual bottleneck, not the (cheap) per-instance CPU math.
     updateDirtyColors() {
         let anyDirty = false;
         this.instances.forEach((inst, i) => {
             if (!inst.colorDirty) return;
             const color = inst.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
+            this.instancedMesh.instanceColor.addUpdateRange(i * 3, 3);
             anyDirty = true;
         });
         if (anyDirty) this.instancedMesh.instanceColor.needsUpdate = true;
@@ -79,14 +84,17 @@ export default class InstancedMeshManager {
     // variant for managers whose instances track their own `dirty` flag and
     // need both position and color refreshed together (skips both the CPU
     // copy and the GPU upload for anything unchanged); clears the flag after
-    // flushing, since it's the consumer's job to do so (see Vegetation)
+    // flushing, since it's the consumer's job to do so (see Vegetation).
+    // Same partial-upload-range approach as updateDirtyColors above.
     updateDirtyInstances() {
         let anyDirty = false;
         this.instances.forEach((inst, i) => {
             if (!inst.dirty) return;
             this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
+            this.instancedMesh.instanceMatrix.addUpdateRange(i * 16, 16);
             const color = inst.renderColor;
             this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
+            this.instancedMesh.instanceColor.addUpdateRange(i * 3, 3);
             inst.dirty = false;
             anyDirty = true;
         });

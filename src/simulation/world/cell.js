@@ -3,7 +3,7 @@
 export const SEA_LEVEL = 0.0;
 
 export default class Cell {
-    constructor(x, y, elevation, fertility, gradient, baseTemp, animOffset = 0, humidity = 0, microclimate = 0) {
+    constructor(x, y, elevation, fertility, gradient, baseTemp, animOffset = 0, humidity = 0, microclimate = 0, biomeJitter = 0) {
         this.x = x;
         this.y = y;
         this.animOffset = animOffset;
@@ -19,6 +19,10 @@ export default class Cell {
         // small persistent per-cell temperature jitter, same generation
         // pipeline as fertility/humidity; up to +/-2.5 degC
         this.microclimateOffset = microclimate * 2.5;
+        // persistent per-cell jitter applied to classifyBiome()'s cutoffs
+        // below, so biome boundaries aren't a hard line following exact
+        // elevation/humidity contours
+        this.biomeJitter = biomeJitter;
 
         this.temperature = this.elevationToTemp(baseTemp, elevation);
 
@@ -68,8 +72,8 @@ export default class Cell {
     classifyBiome() {
         if (this.isWater) return "Ocean";
 
-        const e = this.elevation;
-        const h = this.humidity;
+        const e = this.elevation + this.biomeJitter * 400;
+        const h = this.humidity + this.biomeJitter * 0.08;
 
         if (h < 0.3) {
             if (e < 1800)   return "Desert";

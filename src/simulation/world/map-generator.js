@@ -114,6 +114,20 @@ export default class MapGenerator {
         this.smooth(microclimateMap, 0.2);
         this.clamp(microclimateMap, -1, 1);
 
+        // ===== biome boundary jitter =====
+        // small persistent per-cell offset applied to classifyBiome()'s
+        // elevation/humidity cutoffs, so biome boundaries are an organically
+        // jagged transition instead of a hard line following exact contour
+        // values. Unlike fertility/humidity/microclimate, this deliberately
+        // skips the smoothing pipeline - it needs raw, independent per-cell
+        // noise (no spatial correlation between neighbors), generated
+        // directly at final resolution, otherwise neighboring cells land on
+        // nearly the same jitter value and the boundary just shifts as a
+        // whole instead of breaking up tile-by-tile.
+        const biomeJitterMap = this.random2D(
+            elevationMap.metaData.width, elevationMap.metaData.height, -1, 1
+        );
+
         // ===== animation offset =====
         let offsetMap = this.random2D(width, height, -Math.PI * 2, Math.PI * 2);
         this.smooth(offsetMap);
@@ -127,7 +141,7 @@ export default class MapGenerator {
         for ( let i = 0; i < 2; i++ ) this.smooth(offsetMap, 0.2);
 
         let { gradX, gradY } = this.computeGradient(elevationMap);
-        return this.constructMap(elevationMap, fertilityMap, { gradX, gradY }, baseTemp, offsetMap, humidityMap, microclimateMap);
+        return this.constructMap(elevationMap, fertilityMap, { gradX, gradY }, baseTemp, offsetMap, humidityMap, microclimateMap, biomeJitterMap);
     }
 
     static computeGradient(elevationMap) {
@@ -326,7 +340,7 @@ export default class MapGenerator {
         return totalValue / neighborCount;
     }
     
-    static constructMap(elevationMap, fertilityMap, gradientMaps, baseTemp, offsetMap, humidityMap, microclimateMap) {
+    static constructMap(elevationMap, fertilityMap, gradientMaps, baseTemp, offsetMap, humidityMap, microclimateMap, biomeJitterMap) {
         const { gradX, gradY } = gradientMaps;
 
         const width = elevationMap.metaData.width;
@@ -339,9 +353,10 @@ export default class MapGenerator {
                 const animOffset = offsetMap[y][x];
                 const humidity = humidityMap[y][x];
                 const microclimate = microclimateMap[y][x];
+                const biomeJitter = biomeJitterMap[y][x];
                 const gradient = new THREE.Vector2(gradX[y][x], gradY[y][x]);
                 const idx = y * width + x;
-                cells[idx] = new Cell(x, y, elevation, fertility, gradient, baseTemp, animOffset, humidity, microclimate);
+                cells[idx] = new Cell(x, y, elevation, fertility, gradient, baseTemp, animOffset, humidity, microclimate, biomeJitter);
             }
         }
 
