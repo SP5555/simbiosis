@@ -21,9 +21,6 @@ export default class Cell {
         this.microclimateOffset = microclimate * 2.5;
 
         this.temperature = this.elevationToTemp(baseTemp, elevation);
-        // internal use
-        this.lastRecordedTemp = this.temperature;
-        this.tempChanged = false;
 
         this.biome = this.classifyBiome();
 
@@ -60,13 +57,6 @@ export default class Cell {
         const elevMomentum = 0.5;
         const target = (1 - elevMomentum) * baseTemp + elevMomentum * elevTarget;
         this.temperature += 0.05 * (target - this.temperature);
-        
-        if (Math.abs(this.temperature - this.lastRecordedTemp) > 0.1) {
-            this.lastRecordedTemp = this.temperature;
-            this.tempChanged = true;
-        } else {
-            this.tempChanged = false;
-        }
     }
 
     getSpecies(speciesName) {

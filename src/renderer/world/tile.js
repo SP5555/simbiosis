@@ -9,6 +9,14 @@ import {
     waterTileColor,
 } from './colors/tile-color-core.js';
 
+// each tile gets its own randomized threshold in this range rather than one
+// shared constant, so temperature-driven recolors (e.g. a snowline shifting
+// with the season) land on different tiles at different moments instead of
+// every tile snapping to the new color in perfect lockstep - a deliberate,
+// tunable version of a staggered "patchy thaw/freeze" transition
+const TEMP_DIRTY_THRESHOLD_MIN = 0.1;
+const TEMP_DIRTY_THRESHOLD_RANGE = 1.9;
+
 class Tile {
     constructor(cell, position) {
         this.simCell = cell;
@@ -32,9 +40,17 @@ class Tile {
         this.instanceIndex = -1;
 
         // color only depends on the active filter and the cell's temperature,
-        // so it's recomputed (and re-uploaded to the GPU) only when either changes
+        // so it's recomputed (and re-uploaded to the GPU) only when either
+        // changes meaningfully. Tracks its own last-seen temperature rather
+        // than a shared "did it change" flag on the cell — at higher sim
+        // speeds several simulation ticks can run per rendered frame, and a
+        // shared flag only reflects the last of those ticks, silently
+        // dropping updates whose change happened on an earlier tick in the
+        // same batch.
         this.lastFilter = undefined;
+        this.lastTemp = undefined;
         this.colorDirty = false;
+        this.tempThreshold = TEMP_DIRTY_THRESHOLD_MIN + Math.random() * TEMP_DIRTY_THRESHOLD_RANGE;
     }
 
     // called once by the mesh manager after the InstancedMesh/geometry is built
@@ -69,11 +85,16 @@ class Tile {
     }
 
     updateColor() {
-        if (this.currentFilter === this.lastFilter && !this.simCell.tempChanged) {
+        const tempDelta = this.lastTemp === undefined
+            ? Infinity
+            : Math.abs(this.simCell.temperature - this.lastTemp);
+
+        if (this.currentFilter === this.lastFilter && tempDelta < this.tempThreshold) {
             this.colorDirty = false;
             return;
         }
         this.lastFilter = this.currentFilter;
+        this.lastTemp = this.simCell.temperature;
         this.renderColor = this.computeColor();
         this.colorDirty = true;
     }

@@ -2,7 +2,14 @@
 
 import * as THREE from 'three';
 import { hexToColor, interpolateColorStops, lerpColorHex } from '../../utils/color-utils.js';
-import { BIOME_COLOR_MAP, ELEVATION_COLOR_STOPS, SEA_DEPTH_COLOR_STOPS, TEMPERATURE_COLOR_STOPS } from './tile-color-data.js';
+import {
+    BIOME_COLOR_MAP,
+    ELEVATION_COLOR_STOPS,
+    FERTILITY_COLOR_STOPS,
+    HUMIDITY_COLOR_STOPS,
+    SEA_DEPTH_COLOR_STOPS,
+    TEMPERATURE_COLOR_STOPS,
+} from './tile-color-data.js';
 
 // filters where the wave color wobble (applied in-shader) should be disabled
 const WATER_EXPLICIT_FILTERS = ["Elevation", "Temperature", "Humidity"];
@@ -59,11 +66,11 @@ function temperatureToColorHex(temp) {
 }
 
 function fertilityToColorHex(fertility) {
-    return lerpColorHex(0x000000, 0x0cc66, fertility);
+    return interpolateColorStops(fertility, FERTILITY_COLOR_STOPS);
 }
 
 function humidityToColorHex(humidity) {
-    return lerpColorHex(0x000000, 0x2446cc, humidity);
+    return interpolateColorStops(humidity, HUMIDITY_COLOR_STOPS);
 }
 
 function tempDecorHex(bcHex, temperature) {

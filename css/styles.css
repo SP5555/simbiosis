@@ -5,16 +5,17 @@ canvas { display: block; }
 
 .top-left { position: absolute; top: 10px; left: 10px; }
 .bot-right { position: absolute; bottom: 10px; right: 10px; }
+.bottom-left { position: absolute; bottom: 10px; left: 10px; }
 .vertical-spacer { height: 10px; }
 
-.stats-box, .link-box {
+.stats-box, .link-box, .legend-box {
     cursor: default; user-select: none;
     background: rgba(30, 30, 30, 0.8);
     transition: 0.4s;
     z-index: 10;
     font-family: consolas;
 }
-.stats-box:hover, .link-box:hover {
+.stats-box:hover, .link-box:hover, .legend-box:hover {
     background: rgba(30, 30, 30, 1.0);
 }
 
@@ -27,6 +28,70 @@ canvas { display: block; }
 .link-box {
     padding: 10px 10px;
     border-radius: 20px;
+}
+
+.legend-box {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 200px;
+    padding: 6px 10px 8px;
+    border-radius: 2px;
+    color: white;
+    font-size: 0.8em;
+}
+.legend-box.visible {
+    display: flex;
+}
+.legend-title {
+    font-size: 0.9em;
+    opacity: 0.85;
+}
+.legend-gradient {
+    position: relative;
+    height: 12px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    cursor: crosshair;
+}
+.legend-marker {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: white;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+}
+.legend-marker.visible {
+    opacity: 1;
+}
+.legend-tooltip {
+    position: absolute;
+    bottom: 100%;
+    margin-bottom: 6px;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.78em;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+.legend-tooltip.visible {
+    opacity: 1;
+}
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    opacity: 0.75;
 }
 
 #LinkGitHub {

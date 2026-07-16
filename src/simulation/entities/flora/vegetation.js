@@ -23,6 +23,7 @@ export default class Vegetation {
         this.spreadTicks = 0;
 
         this.biome = cell.biome;
+        this.lastTemp = cell.temperature;
         Object.assign(this, Vegetation.DEFAULTS,
             // this.getBiomeVegetationDefaults(),
             this.calcParams(cell.temperature, cell.fertility, cell.humidity),
@@ -32,7 +33,8 @@ export default class Vegetation {
     step() {
         if (this.cell.isWater) return;
         if (this.value <= 0) return;
-        if (this.cell.tempChanged) {
+        if (Math.abs(this.cell.temperature - this.lastTemp) > 0.1) {
+            this.lastTemp = this.cell.temperature;
             Object.assign(this, this.calcParams(this.cell.temperature, this.cell.fertility, this.cell.humidity));
         }
 

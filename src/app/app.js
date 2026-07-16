@@ -5,6 +5,7 @@ import Renderer from '../renderer/renderer.js';
 import Simulation from '../simulation/simulation.js';
 import GuiManager from '../gui/gui-manager.js';
 import HudManager from '../hud/hud-manager.js';
+import LegendManager from '../hud/legend-manager.js';
 import { EVENTS } from '../utils/events.js';
 import { eventBus } from '../utils/event-emitters.js';
 
@@ -15,6 +16,7 @@ export default class App {
         this.renderer = new Renderer(this.simulation, this.input);
         this.gui = new GuiManager();
         this.hud = new HudManager();
+        this.legend = new LegendManager();
 
         this.simSpeed = 60;
         this.fixedDt = 1 / this.simSpeed;
