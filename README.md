@@ -15,6 +15,8 @@ Hosted here: [Simbiosis World](https://simbiosis-world.netlify.app)
 
 ## How to run
 
+**Prerequisite:** [Node.js](https://nodejs.org/) (LTS) installed - this works the same way on Windows, macOS, and Linux.
+
 1. Clone the repository
 ```bash
 git clone https://github.com/SP5555/simbiosis.git
@@ -26,13 +28,15 @@ cd simbiosis
 npm install
 ```
 
-3. Start local server
+3. Start the dev server
 ```bash
-python3 -m http.server 8000
+npm run dev
 ```
-or any other static server you prefer.
+Vite will print a local URL (defaults to `http://localhost:5173/`) — open it in your browser.
 
-4. Open in your browser
+### Production build
+
 ```bash
-http://localhost:8000/
+npm run build
 ```
+Outputs a bundled, static site to `dist/`, which is what gets deployed to Netlify.

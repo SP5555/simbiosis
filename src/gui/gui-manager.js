@@ -1,6 +1,6 @@
 'use strict'
 
-import GUI from 'lil-GUI';
+import GUI from 'lil-gui';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 
