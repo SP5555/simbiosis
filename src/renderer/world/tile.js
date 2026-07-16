@@ -98,13 +98,6 @@ export class WaterTile extends Tile {
         this.updateColor();
     }
 
-    updateAnimationProperties(dt) {        
-        const anim = this.waveAnim;
-        anim.elapsed += anim.speed * dt;
-        if (anim.elapsed > TWO_PI) anim.elapsed -= TWO_PI;
-        if (anim.elapsed < 0) anim.elapsed += TWO_PI;
-    }
-
     updatePos() {
         const wobble = this.waveAnim.value();
         this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);

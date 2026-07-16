@@ -16,7 +16,7 @@ export default class FloraSystem {
     initFlora() {
         this.addSpecies("veg", (cell) => {
             if (!cell.isWater)
-                return new Vegetation(this, cell, Math.random() < 0.05 ? 1 : 0);
+                return new Vegetation(this, cell, this.map.randomEngine.rand1f() < 0.05 ? 1 : 0);
         });
     }
 

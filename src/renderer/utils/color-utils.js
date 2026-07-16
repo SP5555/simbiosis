@@ -1,6 +1,7 @@
 'use strict'
 
 import * as THREE from 'three'
+import { interpolateStops } from '../../utils/utils.js';
 
 export function lerpColorHex(c1, c2, t) {
     const tt = Math.max(0, Math.min(t, 1));
@@ -30,16 +31,7 @@ export function addNoiseToColorHex(color, variation = 0.05) {
 }
 
 export function interpolateColorStops(value, stops) {
-    const n = stops.length;
-    for (let i = 0; i < n - 1; i++) {
-        const [v1, c1] = stops[i];
-        const [v2, c2] = stops[i + 1];
-        if (value <= v2) {
-            const t = Math.max(0, Math.min((value - v1) / (v2 - v1), 1));
-            return lerpColorHex(c1, c2, t);
-        }
-    }
-    return stops[n - 1][1]; // fallback
+    return interpolateStops(value, stops, lerpColorHex);
 }
 
 export function hexToColor(hex) {

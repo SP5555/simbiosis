@@ -4,9 +4,7 @@ import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 
 export default class HudManager {
-    constructor(simulation) {
-        this.simulation = simulation;
-
+    constructor() {
         this.dayEl = document.getElementById("simStatDay");
         this.yearEl = document.getElementById("simStatYear");
         this.seasonEl = document.getElementById("simStatSeason");

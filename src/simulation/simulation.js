@@ -4,7 +4,7 @@ import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 import FaunaSystem from './entities/fauna-system.js';
 import FloraSystem from './entities/flora-system.js';
-import { interpolateStops } from './utils/utils.js';
+import { interpolateStops } from '../utils/utils.js';
 import { SEASON_TEMP_STOPS } from './world/data.js';
 import MapGenerator from './world/map-generator.js';
 

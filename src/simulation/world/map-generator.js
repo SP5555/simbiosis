@@ -142,7 +142,7 @@ export default class MapGenerator {
             }
             newMap.push(row);
         }
-        map.splice(0, this.height, ...newMap);
+        map.splice(0, map.length, ...newMap);
     }
 
     static smooth(map, strength = 1.0) {
@@ -156,7 +156,7 @@ export default class MapGenerator {
             }
             newMap.push(row);
         }
-        map.splice(0, this.height, ...newMap);
+        map.splice(0, map.length, ...newMap);
     }
 
     static amplify(map, amount, center = 0.0) {
@@ -234,6 +234,8 @@ export default class MapGenerator {
             }
         }
 
-        return new Map(width, height, cells);
+        const map = new Map(width, height, cells);
+        map.randomEngine = this.randomEngine;
+        return map;
     }
 }

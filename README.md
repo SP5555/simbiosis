@@ -32,7 +32,7 @@ npm install
 ```bash
 npm run dev
 ```
-Vite will print a local URL (defaults to `http://localhost:5173/`) — open it in your browser.
+Vite will print a local URL (defaults to `http://localhost:5173/`), open it in your browser.
 
 ### Production build
 

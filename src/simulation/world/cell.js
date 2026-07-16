@@ -85,7 +85,7 @@ export default class Cell {
         let baseStats = {
             Location: `(${this.x},${this.y})`,
             Elevation: `${this.elevation.toFixed(0)}m`,
-            Temperature: `${this.temperature.toFixed(1)}°C`,
+            Temperature: `${this.temperature.toFixed(1)} degC`,
         };
 
         if (this.isWater) return baseStats;
