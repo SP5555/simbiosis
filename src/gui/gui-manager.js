@@ -27,7 +27,7 @@ export default class GuiManager {
 
         // --- world settings ---
         this.worldSettingsFolder = this.gui.addFolder("World Settings");
-        this.terrainFilters = ["Biome", "Elevation", "Elevation Gradient", "Temperature", "Fertility"];
+        this.terrainFilters = ["Biome", "Elevation", "Elevation Gradient", "Temperature", "Fertility", "Humidity"];
         this.terrainParams = { filter: "Biome" };
         this.worldSettingsFolder.add(this.terrainParams, 'filter', this.terrainFilters)
             .name("Select Filter").onChange(() => this.applyTerrainFilter());

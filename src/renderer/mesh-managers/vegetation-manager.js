@@ -45,8 +45,7 @@ export default class VegetationManager extends InstancedMeshManager {
 
     updateInstancedMeshes() {
         if (!this.instancedMesh.visible) { return; }
-        this.updatePos();
-        this.updateColors();
+        this.updateDirtyInstances();
     }
 
     toggleVisibility(visible) {

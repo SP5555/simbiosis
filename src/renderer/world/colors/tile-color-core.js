@@ -18,7 +18,7 @@ export function waterTileColor(tile) {
     if (f == "Temperature")
         return hexToColor(temperatureToColorHex(tile.simCell.temperature));
     if (f == "Humidity")
-        return hexToColor(0x449999);
+        return hexToColor(humidityToColorHex(tile.simCell.humidity));
     // wave wobble multiply is applied in-shader (see tile-shader-effects.js)
     return tile.colors.base.clone();
 }
@@ -36,7 +36,7 @@ export function landTileColor(tile) {
     if (f == "Fertility")
         return hexToColor(fertilityToColorHex(tile.simCell.fertility));
     if (f == "Humidity")
-        return hexToColor(humidityToColorHex(tile.simCell.humidity.value));
+        return hexToColor(humidityToColorHex(tile.simCell.humidity));
     return hexToColor(0xff0000);
 }
 

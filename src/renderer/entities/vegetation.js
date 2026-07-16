@@ -21,16 +21,29 @@ export default class Vegetation {
             this.position.z,
         );
         this.TSRMatrix.multiply(translateMatrix).multiply(this.rotationMatrix);
+
+        // growth only needs to be re-rendered when it actually moved
+        // meaningfully; `dirty` is only ever cleared by whoever flushes it
+        // to the GPU (see InstancedMeshManager.updateDirtyInstances), not
+        // here, so a change that happens while vegetation is hidden stays
+        // flagged until it's actually uploaded
+        this.lastValue = undefined;
+        this.dirty = false;
     }
 
     updateAnimationState(coreDt, simDt) {
         this.updateValue();
-        this.updatePos();
-        this.updateColor();
     }
 
     updateValue() {
-        this.value = this.simVegetation.value;
+        const newValue = this.simVegetation.value;
+        if (this.lastValue !== undefined && Math.abs(newValue - this.lastValue) < 0.05) return;
+
+        this.lastValue = newValue;
+        this.value = newValue;
+        this.updatePos();
+        this.updateColor();
+        this.dirty = true;
     }
 
     updatePos() {

@@ -76,6 +76,26 @@ export default class InstancedMeshManager {
         if (anyDirty) this.instancedMesh.instanceColor.needsUpdate = true;
     }
 
+    // variant for managers whose instances track their own `dirty` flag and
+    // need both position and color refreshed together (skips both the CPU
+    // copy and the GPU upload for anything unchanged); clears the flag after
+    // flushing, since it's the consumer's job to do so (see Vegetation)
+    updateDirtyInstances() {
+        let anyDirty = false;
+        this.instances.forEach((inst, i) => {
+            if (!inst.dirty) return;
+            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
+            const color = inst.renderColor;
+            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
+            inst.dirty = false;
+            anyDirty = true;
+        });
+        if (anyDirty) {
+            this.instancedMesh.instanceMatrix.needsUpdate = true;
+            this.instancedMesh.instanceColor.needsUpdate = true;
+        }
+    }
+
     dispose() {
         if (this.instancedMesh) {
             this.instancedMesh.geometry.dispose();

@@ -25,7 +25,7 @@ export default class Vegetation {
         this.biome = cell.biome;
         Object.assign(this, Vegetation.DEFAULTS,
             // this.getBiomeVegetationDefaults(),
-            this.calcParams(cell.temperature, cell.fertility),
+            this.calcParams(cell.temperature, cell.fertility, cell.humidity),
             options);
     }
 
@@ -33,7 +33,7 @@ export default class Vegetation {
         if (this.cell.isWater) return;
         if (this.value <= 0) return;
         if (this.cell.tempChanged) {
-            Object.assign(this, this.calcParams(this.cell.temperature, this.cell.fertility));
+            Object.assign(this, this.calcParams(this.cell.temperature, this.cell.fertility, this.cell.humidity));
         }
 
         this.stepGrowth();
@@ -91,9 +91,9 @@ export default class Vegetation {
         return accepted;
     }
 
-    calcParams(t, f) {
+    calcParams(t, f, h) {
         let G = this.gauss;
-        let max = (100 + Math.min(0, 6 * (t - 15)) - Math.max(0, 5 * (t - 32))) * G(f, 1, 0.5);
+        let max = (100 + Math.min(0, 6 * (t - 15)) - Math.max(0, 5 * (t - 32))) * G(f, 1, 0.5) * G(h, 1, 0.5);
         return { max: Math.max(0, max) }
     }
 
