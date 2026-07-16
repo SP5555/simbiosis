@@ -2,14 +2,11 @@
 
 import * as THREE from 'three';
 import { WaterTile } from '../world/tile.js';
+import InstancedMeshManager from './instanced-mesh-manager.js';
+import { applySelectionEffect, applyWaveEffect } from '../shaders/tile-shader-effects.js';
+import { usesWaterWobble } from '../world/colors/tile-color-core.js';
 
-export default class WaterTileManager {    
-    constructor() {
-        this.instances = null;
-        this.count = null;
-        this.filter = null;
-    }
-
+export default class WaterTileManager extends InstancedMeshManager {
     buildFromMap(map) {
         this.instances = [];
 
@@ -32,60 +29,29 @@ export default class WaterTileManager {
     buildInstancedMeshes() {
         const geometry = new THREE.BoxGeometry(1, 2, 1, 1, 1, 1);
         const material = new THREE.MeshStandardMaterial();
-        this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
-        const colorArr = new Float32Array(this.count * 3);
-        this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
+        this.createInstancedMesh(geometry, material);
+        applySelectionEffect(material);
+        this.waveColorEnabled = applyWaveEffect(material);
 
-        this.instancedMesh.castShadow = true;
-        this.instancedMesh.receiveShadow = true;
+        const stateAttr = this.createInstancedAttribute('aState', 1);
+        this.instances.forEach((tile, i) => tile.bindStateAttribute(stateAttr, i));
+
+        const waveOffsetAttr = this.createInstancedAttribute('aWaveOffset', 1);
+        this.instances.forEach((tile, i) => waveOffsetAttr.setX(i, tile.waveOffset));
+        waveOffsetAttr.needsUpdate = true;
+
+        this.updatePos();
+    }
+
+    // wave bob is handled in-shader now; the base position set above never
+    // changes, so only colors need to be refreshed on subsequent frames,
+    // and only where dirty
+    updateInstancedMeshes() {
+        this.updateDirtyColors();
     }
 
     mapFilterChange(filterName) {
-        this.filter = filterName;
-        for (let inst of this.instances) {
-            inst.filterChange(filterName);
-        }
-    }
-
-    updateAnimationState(coreDt, simDt) {
-        for (let inst of this.instances) {
-            inst.updateAnimationState(coreDt, simDt);
-        }
-    }
-    
-    updateInstancedMeshes() {
-        this.updatePos();
-        this.updateColors();
-    }
-
-    updatePos() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
-            i++;
-        });
-        this.instancedMesh.instanceMatrix.needsUpdate = true;
-    }
-
-    updateColors() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            let color = inst.renderColor;
-            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-            i++;
-        });
-        this.instancedMesh.instanceColor.needsUpdate = true;
-    }
-
-    dispose() {
-        if (this.instancedMesh) {
-            this.instancedMesh.geometry.dispose();
-            this.instancedMesh.material.dispose();
-            this.instancedMesh = null;
-        }
-    }
-
-    getDrawable() {
-        if (this.instancedMesh) return this.instancedMesh;
+        super.mapFilterChange(filterName);
+        this.waveColorEnabled.value = usesWaterWobble(filterName);
     }
 }

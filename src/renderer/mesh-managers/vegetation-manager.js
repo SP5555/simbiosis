@@ -4,12 +4,11 @@ import * as THREE from 'three';
 import Vegetation from '../entities/vegetation.js';
 import { eventBus } from '../../utils/event-emitters.js';
 import { EVENTS } from '../../utils/events.js';
+import InstancedMeshManager from './instanced-mesh-manager.js';
 
-export default class VegetationManager {
+export default class VegetationManager extends InstancedMeshManager {
     constructor() {
-        this.instances = null;
-        this.count = null;
-
+        super();
         this.initializeEventListeners();
     }
 
@@ -41,18 +40,7 @@ export default class VegetationManager {
     buildInstancedMeshes() {
         const geometry = new THREE.PlaneGeometry(0.75, 0.75);
         const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
-        this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
-        const colorArr = new Float32Array(this.count * 3);
-        this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
-
-        this.instancedMesh.castShadow = true;
-        this.instancedMesh.receiveShadow = true;
-    }
-    
-    updateAnimationState(coreDt, simDt) {
-        for (let inst of this.instances) {
-            inst.updateAnimationState(coreDt, simDt);
-        }
+        this.createInstancedMesh(geometry, material);
     }
 
     updateInstancedMeshes() {
@@ -61,38 +49,7 @@ export default class VegetationManager {
         this.updateColors();
     }
 
-    updatePos() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
-            i++;
-        });
-        this.instancedMesh.instanceMatrix.needsUpdate = true;
-    }
-
-    updateColors() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            let color = inst.renderColor;
-            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-            i++;
-        });
-        this.instancedMesh.instanceColor.needsUpdate = true;
-    }
-
     toggleVisibility(visible) {
         if (this.instancedMesh) this.instancedMesh.visible = visible;
-    }
-
-    dispose() {
-        if (this.instancedMesh) {
-            this.instancedMesh.geometry.dispose();
-            this.instancedMesh.material.dispose();
-            this.instancedMesh = null;
-        }
-    }
-
-    getDrawable() {
-        if (this.instancedMesh) return this.instancedMesh;
     }
 }

@@ -9,6 +9,7 @@ import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 import CameraController from './camera-controller.js';
+import { advance as advanceShaderClock } from './shaders/shader-clock.js';
 
 export default class Renderer {
     constructor(simulation, input) {
@@ -119,6 +120,7 @@ export default class Renderer {
     }
     
     updateScene(coreDt, simDt) {
+        advanceShaderClock(simDt, coreDt);
         this.sun.update(this.simulation.yearProgress, simDt);
         this.updateAnimationState(coreDt, simDt);
         this.updateInstancedMeshes();

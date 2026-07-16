@@ -8,7 +8,6 @@ import {
     seaDepthToColorHex,
     waterTileColor,
 } from './colors/tile-color-core.js';
-import { AbsSineAnimation, SineAnimation } from '../animation/animation-state.js';
 
 class Tile {
     constructor(cell, position) {
@@ -25,55 +24,62 @@ class Tile {
         };
         this.renderColor = new THREE.Color(0, 0, 0);
 
+        // hover/select highlighting is rendered in-shader (see tile-shader-effects.js);
+        // these just track state so it can be written into the aState attribute
         this.hovered = false;
         this.selected = false;
+        this.stateAttribute = null;
+        this.instanceIndex = -1;
 
-        this.selectedAnim = new AbsSineAnimation({
-            speed: 2,
-            amplitude: 0.2,
-        })
+        // color only depends on the active filter and the cell's temperature,
+        // so it's recomputed (and re-uploaded to the GPU) only when either changes
+        this.lastFilter = undefined;
+        this.colorDirty = false;
+    }
+
+    // called once by the mesh manager after the InstancedMesh/geometry is built
+    bindStateAttribute(attribute, index) {
+        this.stateAttribute = attribute;
+        this.instanceIndex = index;
     }
 
     setHovered(hovered) {
         this.hovered = hovered;
+        this.syncState();
     }
 
     setSelected(selected) {
         this.selected = selected;
+        this.syncState();
     }
 
-    updateAnimationState(dt) {
-        throw new Error("updateAnimationState() must be implemented in subclass");
+    syncState() {
+        if (!this.stateAttribute) return;
+        const state = this.selected ? 2 : (this.hovered ? 1 : 0);
+        this.stateAttribute.setX(this.instanceIndex, state);
+        this.stateAttribute.needsUpdate = true;
+    }
+
+    updateAnimationState(coreDt, simDt) {
+        this.updateColor();
     }
 
     filterChange(filterName) {
         this.currentFilter = filterName;
     }
 
-    updatePos() {
-        throw new Error("updatePos() must be implemented in subclass");
-    }
-
     updateColor() {
-        // this function MUST set this.renderColor or it will appear black
-        throw new Error("updateColor() must be implemented in subclass");
+        if (this.currentFilter === this.lastFilter && !this.simCell.tempChanged) {
+            this.colorDirty = false;
+            return;
+        }
+        this.lastFilter = this.currentFilter;
+        this.renderColor = this.computeColor();
+        this.colorDirty = true;
     }
 
-    updateSelectedState() {
-        if (this.selected) {
-            const swing = this.selectedAnim.value();
-            this.renderColor.r = Math.min(1, this.renderColor.r + swing);
-            this.renderColor.g = Math.min(1, this.renderColor.g + swing);
-            this.renderColor.b = Math.min(1, this.renderColor.b + swing);
-        }
-    }
-
-    updateHoveredState() {
-        if (!this.selected && this.hovered) {
-            this.renderColor.r = Math.min(1, this.renderColor.r + 0.2);
-            this.renderColor.g = Math.min(1, this.renderColor.g + 0.2);
-            this.renderColor.b = Math.min(1, this.renderColor.b + 0.2);
-        }
+    computeColor() {
+        throw new Error("computeColor() must be implemented in subclass");
     }
 }
 
@@ -84,29 +90,13 @@ export class WaterTile extends Tile {
         this.colors.baseHex = seaDepthToColorHex(this.simCell.elevation);
         this.colors.base = hexToColor(this.colors.baseHex);
 
-        this.waveAnim = new SineAnimation({
-            speed: -1,
-            amplitude: 0.25,
-            offset: (cell.elevation / 250) + cell.animOffset + Math.random() * 2,
-        })
+        // fed into the water shader's aWaveOffset attribute; drives both the
+        // vertex-shader position bob and fragment-shader color wobble
+        this.waveOffset = (cell.elevation / 250) + cell.animOffset + Math.random() * 2;
     }
 
-    updateAnimationState(coreDt, simDt) {
-        this.selectedAnim.update(coreDt);
-        this.waveAnim.update(simDt);
-        this.updatePos();
-        this.updateColor();
-    }
-
-    updatePos() {
-        const wobble = this.waveAnim.value();
-        this.TSRMatrix.makeTranslation(this.position.x, this.position.y + wobble, this.position.z);
-    }
-
-    updateColor() {
-        this.renderColor = waterTileColor(this);
-        this.updateSelectedState();
-        this.updateHoveredState();
+    computeColor() {
+        return waterTileColor(this);
     }
 }
 
@@ -118,14 +108,7 @@ export class LandTile extends Tile {
         this.colors.base = hexToColor(this.colors.baseHex);
     }
 
-    updateAnimationState(coreDt, simDt) {
-        this.selectedAnim.update(coreDt);
-        this.updateColor();
-    }
-
-    updateColor() {
-        this.renderColor = landTileColor(this);
-        this.updateSelectedState();
-        this.updateHoveredState();
+    computeColor() {
+        return landTileColor(this);
     }
 }

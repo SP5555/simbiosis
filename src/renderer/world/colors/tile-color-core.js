@@ -4,6 +4,13 @@ import * as THREE from 'three';
 import { hexToColor, interpolateColorStops, lerpColorHex } from '../../utils/color-utils.js';
 import { BIOME_COLOR_MAP, ELEVATION_COLOR_STOPS, SEA_DEPTH_COLOR_STOPS, TEMPERATURE_COLOR_STOPS } from './tile-color-data.js';
 
+// filters where the wave color wobble (applied in-shader) should be disabled
+const WATER_EXPLICIT_FILTERS = ["Elevation", "Temperature", "Humidity"];
+
+export function usesWaterWobble(filterName) {
+    return !WATER_EXPLICIT_FILTERS.includes(filterName);
+}
+
 export function waterTileColor(tile) {
     let f = tile.currentFilter;
     if (f == "Elevation")
@@ -12,7 +19,8 @@ export function waterTileColor(tile) {
         return hexToColor(temperatureToColorHex(tile.simCell.temperature));
     if (f == "Humidity")
         return hexToColor(0x449999);
-    return waterWobbleColor(tile);
+    // wave wobble multiply is applied in-shader (see tile-shader-effects.js)
+    return tile.colors.base.clone();
 }
 
 export function landTileColor(tile) {
@@ -30,10 +38,6 @@ export function landTileColor(tile) {
     if (f == "Humidity")
         return hexToColor(humidityToColorHex(tile.simCell.humidity.value));
     return hexToColor(0xff0000);
-}
-
-function waterWobbleColor(tile) {
-    return tile.colors.base.clone().multiplyScalar(1 + tile.waveAnim.value());
 }
 
 export function biomeFertilityToColorHex(biome, fertility) {

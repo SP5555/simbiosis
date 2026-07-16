@@ -2,14 +2,10 @@
 
 import * as THREE from 'three';
 import { LandTile } from '../world/tile.js';
+import InstancedMeshManager from './instanced-mesh-manager.js';
+import { applySelectionEffect } from '../shaders/tile-shader-effects.js';
 
-export default class LandTileManager {    
-    constructor() {
-        this.instances = null;
-        this.count = null;
-        this.filter = null;
-    }
-
+export default class LandTileManager extends InstancedMeshManager {
     buildFromMap(map) {
         this.instances = [];
 
@@ -32,61 +28,18 @@ export default class LandTileManager {
     buildInstancedMeshes() {
         const geometry = new THREE.BoxGeometry(1, 2, 1, 1, 1, 1);
         const material = new THREE.MeshStandardMaterial();
-        this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
-        const colorArr = new Float32Array(this.count * 3);
-        this.instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colorArr, 3);
+        this.createInstancedMesh(geometry, material);
+        applySelectionEffect(material);
 
-        this.instancedMesh.castShadow = true;
-        this.instancedMesh.receiveShadow = true;
+        const stateAttr = this.createInstancedAttribute('aState', 1);
+        this.instances.forEach((tile, i) => tile.bindStateAttribute(stateAttr, i));
 
         this.updatePos();
     }
 
-    mapFilterChange(filterName) {
-        this.filter = filterName;
-        for (let inst of this.instances) {
-            inst.filterChange(filterName);
-        }
-    }
-
-    updateAnimationState(coreDt, simDt) {
-        for (let inst of this.instances) {
-            inst.updateAnimationState(coreDt, simDt);
-        }
-    }
-
+    // land tile positions never change after being built, so only colors
+    // need to be refreshed on subsequent frames, and only where dirty
     updateInstancedMeshes() {
-        this.updateColors();
-    }
-
-    updatePos() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            this.instancedMesh.setMatrixAt(i, inst.TSRMatrix);
-            i++;
-        });
-        this.instancedMesh.instanceMatrix.needsUpdate = true;
-    }
-
-    updateColors() {
-        let i = 0;
-        this.instances.forEach(inst => {
-            let color = inst.renderColor;
-            this.instancedMesh.instanceColor.setXYZ(i, color.r, color.g, color.b);
-            i++;
-        });
-        this.instancedMesh.instanceColor.needsUpdate = true;
-    }
-
-    dispose() {
-        if (this.instancedMesh) {
-            this.instancedMesh.geometry.dispose();
-            this.instancedMesh.material.dispose();
-            this.instancedMesh = null;
-        }
-    }
-
-    getDrawable() {
-        if (this.instancedMesh) return this.instancedMesh;
+        this.updateDirtyColors();
     }
 }
