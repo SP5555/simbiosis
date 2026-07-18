@@ -1,13 +1,12 @@
 'use strict'
 
-export const SEASON_TEMP_STOPS = [
-    [0.00,  4],     // SP
-    [0.10, 10],
-    [0.25, 26],     // SU
-    [0.35, 24],
-    [0.50, 20],     // FA
-    [0.60, 10],
-    [0.75,  0],     // WI
-    [0.85, -2],
-    [1.00,  4],     // SP
-];
+// Seasonal temperature follows a single sinusoid rather than piecewise-linear
+// stops: real annual temperature cycles are well-approximated this way, and
+// it naturally gives zero slope at the peak/trough (summer/winter) and
+// maximum rate of change at the zero-crossings (spring/fall), instead of
+// linear segments kinking at every hand-placed point.
+export const SEASON_TEMP = {
+    mean: 12,        // yearly average
+    amplitude: 14,   // swing above/below the mean (peak 26, trough -2)
+    peakOffset: 0.25,  // yearProgress at which the peak (summer) occurs
+};

@@ -4,8 +4,7 @@ import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 import FaunaSystem from './entities/fauna-system.js';
 import FloraSystem from './entities/flora-system.js';
-import { interpolateStops } from '../utils/utils.js';
-import { SEASON_TEMP_STOPS } from './world/data.js';
+import { SEASON_TEMP } from './world/data.js';
 import MapGenerator from './world/map-generator.js';
 
 export default class Simulation {
@@ -84,7 +83,8 @@ export default class Simulation {
     }
 
     updateBaseTemp() {
-        this.baseTemp = interpolateStops(this.yearProgress, SEASON_TEMP_STOPS);
+        const { mean, amplitude, peakOffset } = SEASON_TEMP;
+        this.baseTemp = mean + amplitude * Math.cos(2 * Math.PI * (this.yearProgress - peakOffset));
     }
 
     step() {
