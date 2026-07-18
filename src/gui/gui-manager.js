@@ -3,6 +3,7 @@
 import GUI from 'lil-gui';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
+import { getSeasonNamesForHemisphere, DAYS_PER_YEAR } from '../simulation/world/data.js';
 
 export default class GuiManager {
     constructor() {
@@ -43,15 +44,42 @@ export default class GuiManager {
             width: 4, height: 4, expand: 5,
             seed: "write something",
             startSeason: "Spring",
+            climateZone: "Temperate",
+            hemisphere: "Northern",
             generate: () => this.generateMap()
         };
         this.mapFolder.add(this.mapParams, 'width', 1, 8, 1).name("Base Map Width");
         this.mapFolder.add(this.mapParams, 'height', 1, 8, 1).name("Base Map Height");
         this.mapFolder.add(this.mapParams, 'expand', 0, 8, 1).name("Expand Times");
         this.mapFolder.add(this.mapParams, 'seed').name("Seed");
-        this.mapFolder.add(this.mapParams, 'startSeason', ["Spring", "Summer", "Fall", "Winter"]).name("Start Season");
+        this.mapFolder.add(this.mapParams, 'hemisphere', ["Northern", "Southern"])
+            .name("Hemisphere")
+            .onChange((value) => this.rebuildStartSeasonOptions(value));
+        this.mapFolder.add(this.mapParams, 'climateZone', ["Equatorial", "Temperate", "Polar"]).name("Climate Zone");
+        this.startSeasonCtrl = this.mapFolder.add(this.mapParams, 'startSeason', this.buildSeasonOptions(this.mapParams.hemisphere))
+            .name("Start Season");
         this.mapFolder.add(this.mapParams, 'generate').name("Generate Map");
         this.mapFolder.open();
+    }
+
+    // "Day N - SeasonName" labels, where day numbers are the fixed quarter
+    // boundaries and the season name shown at each depends on hemisphere
+    // (Southern is 2 quarters/6 months out of phase) - the underlying
+    // stored value stays a plain season name either way, since "Summer"
+    // means "the warm quarter" regardless of which days it falls on
+    buildSeasonOptions(hemisphereName) {
+        const seasonLength = DAYS_PER_YEAR / 4;
+        const names = getSeasonNamesForHemisphere(hemisphereName);
+        const options = {};
+        names.forEach((name, i) => {
+            const day = Math.round(i * seasonLength) + 1;
+            options[`Day ${day} - ${name}`] = name;
+        });
+        return options;
+    }
+
+    rebuildStartSeasonOptions(hemisphereName) {
+        this.startSeasonCtrl.options(this.buildSeasonOptions(hemisphereName));
     }
 
     applyMapGeneration() {
@@ -60,7 +88,9 @@ export default class GuiManager {
             height: this.mapParams.height,
             expand: this.mapParams.expand,
             seed: this.mapParams.seed,
-            startSeason: this.mapParams.startSeason
+            startSeason: this.mapParams.startSeason,
+            climateZone: this.mapParams.climateZone,
+            hemisphere: this.mapParams.hemisphere
         });
     }
 

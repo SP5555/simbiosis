@@ -8,6 +8,7 @@ export default class HudManager {
         this.dayEl = document.getElementById("simStatDay");
         this.yearEl = document.getElementById("simStatYear");
         this.seasonEl = document.getElementById("simStatSeason");
+        this.climateEl = document.getElementById("simStatClimate");
         this.fpsEl = document.getElementById("simStatFPS");
         this.activeTileTableEl = document.getElementById("activeTileTable");
         
@@ -20,6 +21,9 @@ export default class HudManager {
         });
         eventBus.on(EVENTS.SEASON_CHANGED, ({ name }) => {
             this.updateSeason(name);
+        });
+        eventBus.on(EVENTS.CLIMATE_CHANGED, ({ zoneName, hemisphereName }) => {
+            this.updateClimate(zoneName, hemisphereName);
         });
         eventBus.on(EVENTS.TILE_SELECTED, (tile) => {
             this.updateSelectedTile(tile);
@@ -44,6 +48,10 @@ export default class HudManager {
 
     updateSeason(name) {
         this.seasonEl.textContent = name;
+    }
+
+    updateClimate(zoneName, hemisphereName) {
+        this.climateEl.textContent = `${hemisphereName} - ${zoneName}`;
     }
 
     updateSelectedTile(tile) {

@@ -12,6 +12,7 @@ export const EVENTS = {
     MAP_GENERATED: "sim:mapGenerated",
     SEASON_CHANGED: "sim:seasonChanged",
     DATE_CHANGED: "sim:dateChanged",
+    CLIMATE_CHANGED: "sim:climateChanged",
 
     // renderer events
     NEW_SCALE_CALCULATED: "ren:newScaleCalculated",

@@ -121,7 +121,7 @@ export default class Renderer {
     
     updateScene(coreDt, simDt) {
         advanceShaderClock(simDt, coreDt);
-        this.sun.update(this.simulation.yearProgress, simDt);
+        this.sun.update(this.simulation.climate, simDt);
         this.updateAnimationState(coreDt, simDt);
         this.updateInstancedMeshes();
     }
