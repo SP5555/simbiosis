@@ -2,95 +2,134 @@
 
 export default class Vegetation {
     static DEFAULTS = {
-        changeRate: 0.005,  // sensitivity to logistic growth equation 
-        max: 50,            // max vegetation allowed (variable)
+        // growth attempt: bump value by a random fraction of remaining headroom
+        growthFractionMin: 0.05,
+        growthFractionMax: 0.20,
 
-        extThreshold: 1,    // under this threshold, extinction timer starts
-        extInterval: 200,   // after this amount of ticks, extinction becomes possible
-        extProb: 0.003,     // per-tick probability of vegetation dying
+        // dieback attempt: shrink toward max by a random fraction of the excess,
+        // with a chance of total collapse instead - the collapse chance is
+        // dampened by current size (see attemptDieback), so an established,
+        // thriving population resists sudden wipeout and mostly just takes
+        // a proportional hit, while a small/marginal one stays vulnerable
+        diebackFractionMin: 0.2,
+        diebackFractionMax: 0.5,
+        diebackCollapseProb: 0.15,
+        collapseResilience: 20,
 
-        sprThreshold: 30,   // above this threshold, spread timer starts
-        sprInterval: 150,   // after this amount of ticks, spread becomes possible
-        sprProb: 0.003,     // per-tick probability of spreading to random neighbor
-        sprAmt: 1,          // spread this amount of vegetation
+        // spread attempt: chance-gated, targets a random neighbor in a 5x5 window
+        spreadProb: 0.15,
+        spreadFraction: 0.05,
+
+        // next-wake delay ranges (ticks) - shorter while actively changing,
+        // longer once settled. The settled case is intentionally capped well
+        // below the scheduler's bucket size so nothing sleeps too long even
+        // before FloraSystem's season-change wake-up safety net kicks in.
+        delayStruggling: [10, 30],
+        delayGrowing: [15, 40],
+        delaySettled: [80, 180],
     };
 
-    constructor(floraSystem, cell, value=0, options = {}) {
+    constructor(floraSystem, cell, value = 0, options = {}) {
         this.floraSystem = floraSystem;
         this.cell = cell;
         this.value = value;
-        this.deathTicks = 0;
-        this.spreadTicks = 0;
 
         this.biome = cell.biome;
         this.lastTemp = cell.temperature;
         Object.assign(this, Vegetation.DEFAULTS,
-            // this.getBiomeVegetationDefaults(),
             this.calcParams(cell.temperature, cell.fertility, cell.humidity),
             options);
+
+        // dormant (value === 0) instances schedule nothing and cost nothing
+        // until add() wakes them via an external spread event
+        if (this.value > 0) {
+            this.floraSystem.scheduler.schedule(this, this.rollDelay());
+        }
     }
 
+    // called by the scheduler when this instance's wake-up tick arrives
     step() {
-        if (this.cell.isWater) return;
-        if (this.value <= 0) return;
+        if (this.cell.isWater || this.value <= 0) return;
+
         if (Math.abs(this.cell.temperature - this.lastTemp) > 0.1) {
             this.lastTemp = this.cell.temperature;
             Object.assign(this, this.calcParams(this.cell.temperature, this.cell.fertility, this.cell.humidity));
         }
 
-        this.stepGrowth();
-        this.stepExtinction();
-        this.stepSpread();
+        const ratio = this.value / (this.max + 1e-2);
+        let state;
+        if (ratio > 1.1) {
+            this.attemptDieback();
+            state = "struggling";
+        } else if (ratio < 0.95) {
+            this.attemptGrowth();
+            state = "growing";
+        } else {
+            this.attemptSpread();
+            state = "settled";
+        }
 
         this.value = Math.max(0, this.value);
+
+        if (this.value > 0) {
+            this.floraSystem.scheduler.schedule(this, this.rollDelay(state));
+        }
+        // else: dies, goes dormant, not rescheduled - waits for add()
     }
 
-    stepGrowth() {
-        let P = this.value;
-        P += this.changeRate * P * (1 - P / (this.max + 1e-2));
-        this.value = Math.max(P, 1e-2);
+    attemptGrowth() {
+        const headroom = Math.max(0, this.max - this.value);
+        const fraction = this.growthFractionMin + Math.random() * (this.growthFractionMax - this.growthFractionMin);
+        this.value += headroom * fraction;
     }
 
-    stepExtinction() {
-        if (this.value !== 0 && this.value < this.extThreshold) {
-            if (this.deathTicks >= this.extInterval && Math.random() < this.extProb) {
-                this.value = 0;
-                this.deathTicks = 0;
-            } else {
-                this.deathTicks++;
-            }
-        } else {
-            this.deathTicks = 0;
+    attemptDieback() {
+        // resilience is based on size going into this event, not the
+        // shrunken value coming out of it
+        const collapseProb = this.diebackCollapseProb / (1 + this.value / this.collapseResilience);
+
+        const excess = this.value - this.max;
+        const fraction = this.diebackFractionMin + Math.random() * (this.diebackFractionMax - this.diebackFractionMin);
+        this.value -= excess * fraction;
+
+        if (Math.random() < collapseProb) {
+            this.value = 0;
         }
     }
 
-    stepSpread() {
-        if (this.value >= this.sprThreshold) {
-            if (this.spreadTicks >= this.sprInterval && Math.random() < this.sprProb) {
-                let dx = Math.floor(Math.random() * 5) - 2;
-                let dy = Math.floor(Math.random() * 5) - 2;
-                if (dx !== 0 || dy !== 0) {
-                    let neighbor = this.floraSystem.getSpeciesAt("veg", this.cell.x + dx, this.cell.y + dy);
-                    if (neighbor) {
-                        let accepted = neighbor.add(this.sprAmt);
-                        this.value -= accepted;
-                        this.spreadTicks = 0;
-                    }
-                }
-            } else {
-                this.spreadTicks++;
-            }
-        } else {
-            this.spreadTicks = 0;
-        }
+    attemptSpread() {
+        if (Math.random() > this.spreadProb) return;
+
+        const dx = Math.floor(Math.random() * 5) - 2;
+        const dy = Math.floor(Math.random() * 5) - 2;
+        if (dx === 0 && dy === 0) return;
+
+        const neighbor = this.floraSystem.getSpeciesAt("veg", this.cell.x + dx, this.cell.y + dy);
+        if (!neighbor) return;
+
+        const amount = this.value * this.spreadFraction;
+        const accepted = neighbor.add(amount);
+        this.value -= accepted;
     }
 
-    // receives spread from neighbor
+    // receives spread from a neighbor
     add(spr) {
-        if (this.value >= 200) return 0;
-        let accepted = Math.min(spr, 200 - this.value);
+        const wasDormant = this.value <= 0;
+        const cap = Math.max(this.max * 1.2, 1);
+        const accepted = Math.min(spr, Math.max(0, cap - this.value));
         this.value += accepted;
+
+        if (wasDormant && this.value > 0) {
+            this.floraSystem.scheduler.schedule(this, this.rollDelay());
+        }
         return accepted;
+    }
+
+    rollDelay(state = "settled") {
+        const [min, max] = state === "struggling" ? this.delayStruggling
+            : state === "growing" ? this.delayGrowing
+            : this.delaySettled;
+        return min + Math.floor(Math.random() * (max - min));
     }
 
     calcParams(t, f, h) {
@@ -101,21 +140,6 @@ export default class Vegetation {
 
     gauss(x, opt, sigma) {
         return Math.exp( -0.5 * ((x - opt)/sigma) ** 2 );
-    }
-
-    getBiomeVegetationDefaults() {
-        switch (this.biome) {
-            case "Desert":      return { max: 20 };
-            case "Steppe":      return { max: 15 }
-            case "Tundra":      return { max: 10 };
-            case "Savanna":     return { max: 40 };
-            case "Grassland":   return { max: 30 };
-            case "Taiga":       return { max: 20 };
-            case "Jungle":      return { max: 90 };
-            case "Forest":      return { max: 75 };
-            case "Boreal":      return { max: 60 };
-            default:            return { max:  0 };
-        }
     }
 
     getDisplayStats() {
