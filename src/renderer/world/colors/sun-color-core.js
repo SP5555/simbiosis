@@ -3,7 +3,7 @@
 import { interpolateColorStops, lerpColorHex } from '../../utils/color-utils.js';
 import { SUN_TEMP_COLOR_STOPS, SUN_WARMING_TINT, SUN_COOLING_TINT } from './sun-color-data.js';
 
-// Shared by Sun (the actual light) and the HUD's season wheel, so both
+// Shared by Sun (the actual light) and the HUD's season timeline, so both
 // render identically-derived colors instead of two hand-tuned copies.
 export function computeSunColorHex(yearProgress, peakOffset, amplitude, baseTemp) {
     const baseColorHex = interpolateColorStops(baseTemp, SUN_TEMP_COLOR_STOPS);

@@ -2,11 +2,11 @@
 
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
-import SeasonWheel from './season-wheel.js';
+import SeasonTimeline from './season-timeline.js';
 
 export default class HudManager {
     constructor() {
-        this.seasonWheel = new SeasonWheel();
+        this.seasonTimeline = new SeasonTimeline();
         this.fpsEl = document.getElementById("simStatFPS");
         this.activeTileTableEl = document.getElementById("activeTileTable");
 
@@ -15,10 +15,10 @@ export default class HudManager {
 
         // event subscription
         eventBus.on(EVENTS.DATE_CHANGED, ({ day, year }) => {
-            this.seasonWheel.updateDate(day, year);
+            this.seasonTimeline.updateDate(day, year);
         });
         // note: no SEASON_CHANGED/CLIMATE_CHANGED subscriptions needed here
-        // any more - the wheel shows the season directly (arc colors +
+        // any more - the timeline shows the season directly (segment colors +
         // marker position), refreshed every update() tick below
         eventBus.on(EVENTS.TILE_SELECTED, (tile) => {
             this.updateSelectedTile(tile);
@@ -26,14 +26,14 @@ export default class HudManager {
     }
 
     // climate is passed in fresh each call (rather than only reacting to
-    // CLIMATE_CHANGED) so the wheel's marker gets smooth continuous motion
+    // CLIMATE_CHANGED) so the timeline's marker gets smooth continuous motion
     // instead of only moving once per simulated day
     update(intervalTime, framesInInterval, climate) {
         this.updateFPS(intervalTime, framesInInterval);
         this.updateSelectedTileStats();
         if (climate) {
-            this.seasonWheel.updatePosition(climate.yearProgress);
-            this.seasonWheel.updateClimate(climate);
+            this.seasonTimeline.updatePosition(climate.yearProgress);
+            this.seasonTimeline.updateClimate(climate);
         }
     }
 

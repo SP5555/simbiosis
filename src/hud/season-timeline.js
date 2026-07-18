@@ -19,18 +19,17 @@ function toColorHex(n) {
     return '#' + n.toString(16).padStart(6, '0');
 }
 
-// A flat timeline bar (four season segments + an orbiting marker) replacing
-// the earlier circular dial - same underlying data and temperature-driven
-// coloring (computeSunColorHex, shared with the actual sun), just laid out
-// linearly instead of radially, freeing vertical space for larger day/
-// year/climate text above it.
-export default class SeasonWheel {
+// A flat timeline bar (four season segments + an orbiting marker), same
+// underlying data and temperature-driven coloring (computeSunColorHex,
+// shared with the actual sun), laid out linearly to free vertical space
+// for larger day/year/climate text above it.
+export default class SeasonTimeline {
     constructor() {
-        this.svg = document.getElementById('seasonWheel');
-        this.dayEl = document.getElementById('wheelDay');
-        this.dayTotalEl = document.getElementById('wheelDayTotal');
-        this.yearEl = document.getElementById('wheelYear');
-        this.climateLabelEl = document.getElementById('wheelClimateLabel');
+        this.svg = document.getElementById('seasonTimeline');
+        this.dayEl = document.getElementById('timelineDay');
+        this.dayTotalEl = document.getElementById('timelineDayTotal');
+        this.yearEl = document.getElementById('timelineYear');
+        this.climateLabelEl = document.getElementById('timelineClimateLabel');
 
         this.dayTotalEl.textContent = `/${DAYS_PER_YEAR}`;
 
@@ -39,7 +38,7 @@ export default class SeasonWheel {
         this.buildBar();
 
         this.marker = document.createElementNS(SVG_NS, 'circle');
-        this.marker.setAttribute('class', 'wheel-marker');
+        this.marker.setAttribute('class', 'timeline-marker');
         this.marker.setAttribute('r', MARKER_RADIUS);
         this.marker.setAttribute('cy', BAR_Y + BAR_HEIGHT / 2);
         this.svg.appendChild(this.marker);
@@ -48,7 +47,7 @@ export default class SeasonWheel {
     buildBar() {
         for (let i = 0; i < 4; i++) {
             const rect = document.createElementNS(SVG_NS, 'rect');
-            rect.setAttribute('class', 'wheel-segment');
+            rect.setAttribute('class', 'timeline-segment');
             rect.setAttribute('x', segmentX(i));
             rect.setAttribute('y', BAR_Y);
             rect.setAttribute('width', SEGMENT_WIDTH);
@@ -58,7 +57,7 @@ export default class SeasonWheel {
             this.segments.push(rect);
 
             const label = document.createElementNS(SVG_NS, 'text');
-            label.setAttribute('class', 'wheel-label');
+            label.setAttribute('class', 'timeline-label');
             label.setAttribute('text-anchor', 'middle');
             label.setAttribute('x', segmentX(i) + SEGMENT_WIDTH / 2);
             label.setAttribute('y', BAR_Y + BAR_HEIGHT + 13);
