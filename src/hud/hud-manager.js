@@ -2,56 +2,45 @@
 
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
+import SeasonWheel from './season-wheel.js';
 
 export default class HudManager {
     constructor() {
-        this.dayEl = document.getElementById("simStatDay");
-        this.yearEl = document.getElementById("simStatYear");
-        this.seasonEl = document.getElementById("simStatSeason");
-        this.climateEl = document.getElementById("simStatClimate");
+        this.seasonWheel = new SeasonWheel();
         this.fpsEl = document.getElementById("simStatFPS");
         this.activeTileTableEl = document.getElementById("activeTileTable");
-        
+
         this.weightedAvgFPS = 0;
         this.activeTile = null;
 
         // event subscription
         eventBus.on(EVENTS.DATE_CHANGED, ({ day, year }) => {
-            this.updateDate(day, year);
+            this.seasonWheel.updateDate(day, year);
         });
-        eventBus.on(EVENTS.SEASON_CHANGED, ({ name }) => {
-            this.updateSeason(name);
-        });
-        eventBus.on(EVENTS.CLIMATE_CHANGED, ({ zoneName, hemisphereName }) => {
-            this.updateClimate(zoneName, hemisphereName);
-        });
+        // note: no SEASON_CHANGED/CLIMATE_CHANGED subscriptions needed here
+        // any more - the wheel shows the season directly (arc colors +
+        // marker position), refreshed every update() tick below
         eventBus.on(EVENTS.TILE_SELECTED, (tile) => {
             this.updateSelectedTile(tile);
         })
     }
 
-    update(intervalTime, framesInInterval) {
+    // climate is passed in fresh each call (rather than only reacting to
+    // CLIMATE_CHANGED) so the wheel's marker gets smooth continuous motion
+    // instead of only moving once per simulated day
+    update(intervalTime, framesInInterval, climate) {
         this.updateFPS(intervalTime, framesInInterval);
         this.updateSelectedTileStats();
+        if (climate) {
+            this.seasonWheel.updatePosition(climate.yearProgress);
+            this.seasonWheel.updateClimate(climate);
+        }
     }
 
     updateFPS(intervalTime, framesInInterval) {
         const fps = framesInInterval / intervalTime;
         this.weightedAvgFPS = this.weightedAvgFPS * 0.6 + fps * 0.4;
         this.fpsEl.textContent = this.weightedAvgFPS.toFixed(1);
-    }
-
-    updateDate(day, year) {
-        this.dayEl.textContent = day;
-        this.yearEl.textContent = year;
-    }
-
-    updateSeason(name) {
-        this.seasonEl.textContent = name;
-    }
-
-    updateClimate(zoneName, hemisphereName) {
-        this.climateEl.textContent = `${hemisphereName} - ${zoneName}`;
     }
 
     updateSelectedTile(tile) {

@@ -10,19 +10,14 @@
 <body>
     <canvas id="canvas00"></canvas>
     <div class="top-left" style="flex-direction: column;">
-        <div class="stats-box gui-block" style="color: white;">
-            Day <span id="simStatDay">N/A</span> of Year <span id="simStatYear">N/A</span>
-            <table>
-                <tr>
-                    <td>Climate</td><td>:</td><td><span id="simStatClimate">N/A</span></td>
-                </tr>
-                <tr>
-                    <td>Season</td><td>:</td><td><span id="simStatSeason">N/A</span></td>
-                </tr>
-                <tr>
-                    <td>FPS</td><td>:</td><td><span id="simStatFPS">N/A</span></td>
-                </tr>
-            </table>
+        <div class="stats-box gui-block season-wheel-box">
+            <div class="wheel-day-row">
+                Day <span id="wheelDay">N/A</span><span class="wheel-day-total" id="wheelDayTotal"></span>
+                <span class="wheel-year" id="wheelYear">N/A</span>
+            </div>
+            <div class="wheel-climate" id="wheelClimateLabel">N/A</div>
+            <svg id="seasonWheel" viewBox="0 0 170 40"></svg>
+            <div class="wheel-fps">FPS: <span id="simStatFPS">N/A</span></div>
         </div>
         <div class="vertical-spacer"></div>
         <div class="stats-box gui-block" style="color: white;">

@@ -116,7 +116,7 @@ export default class App {
         this.overlayAccumulator += coreDt;
         this.overlayFrameCount++;
         if (this.overlayAccumulator >= 0.125) {
-            this.hud.update(this.overlayAccumulator, this.overlayFrameCount);
+            this.hud.update(this.overlayAccumulator, this.overlayFrameCount, this.simulation.climate);
             this.overlayAccumulator = 0;
             this.overlayFrameCount = 0;
         }
