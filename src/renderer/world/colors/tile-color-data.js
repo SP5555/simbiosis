@@ -3,8 +3,8 @@
 // deep -> shallow, held to a consistent blue/cyan hue range (~197-223deg)
 // rather than drifting into violet at depth like the old stops did
 export const SEA_DEPTH_COLOR_STOPS = [
-    [-3500, 0x0e162a],
-    [-1800, 0x172f4f],
+    [-3500, 0x172445],
+    [-1800, 0x1e3d67],
     [ -600, 0x225881],
     [    0, 0x3694ba],
 ];

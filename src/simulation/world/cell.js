@@ -72,14 +72,42 @@ export default class Cell {
         this.temperature += this.tempInertiaRate * (target - this.temperature);
     }
 
+    // a first-order lag driven by a seasonal sine wave doesn't just delay
+    // the response, it also shrinks its amplitude - and if the lag's time
+    // constant is too large relative to the wave's period, that shrinkage
+    // dominates and the response barely oscillates at all. Our year is only
+    // 18000 ticks, so a rate calibrated for "real ocean, takes years" was
+    // actually crushing deep water's seasonal swing down to ~27% of the
+    // surface's, not just delaying it - a polar deep cell would then never
+    // get anywhere near its (already cold) seasonal peak. This instead
+    // targets keeping roughly 60% of the swing at extreme depth, with a lag
+    // of a few days behind the surface - noticeably damped and delayed, not
+    // amplitude-crushed into permafrost.
+    //
+    // FAST_RATE is 200x SLOW_RATE, so blending them directly (in either rate
+    // or tau space) is dominated by whichever endpoint has the larger raw
+    // magnitude, even at a small blend weight - rate-space blending made
+    // deep water snap to "slow" almost immediately, tau-space blending made
+    // shallow water snap to "slow" almost immediately. Blending in LOG space
+    // (a geometric interpolation) is the right tool for two values spanning
+    // orders of magnitude and doesn't have either problem: shallow/moderate
+    // depths stay close to FAST_RATE, only genuinely deep water approaches
+    // SLOW_RATE. The depth falloff itself is a true exponential asymptote
+    // (never hits a hard floor), unlike an earlier version that clamped at
+    // a fixed max depth - that clamp made the rate go from steeply changing
+    // to perfectly flat right at the cutoff, and that slope kink was visible
+    // as a distinct band on the map even though the value itself never
+    // actually jumped.
     computeTempInertiaRate(elevation) {
         const FAST_RATE = 0.05;    // land / shallow water - today's behavior
-        const SLOW_RATE = 0.0001;  // deep ocean - takes years to catch up
-        const MAX_DEPTH = 3000;
+        const SLOW_RATE = 0.003;   // deep ocean asymptote - damped and delayed, not frozen solid
+        const DEPTH_SCALE = 1000;  // depth (m) over which the rate approaches SLOW_RATE
 
         if (elevation >= SEA_LEVEL) return FAST_RATE;
-        const depthT = Math.min(-elevation / MAX_DEPTH, 1);
-        return FAST_RATE + (SLOW_RATE - FAST_RATE) * depthT;
+        const depth = -elevation;
+        const t = 1 - Math.exp(-depth / DEPTH_SCALE);
+        const logRate = Math.log(FAST_RATE) + (Math.log(SLOW_RATE) - Math.log(FAST_RATE)) * t;
+        return Math.exp(logRate);
     }
 
     getSpecies(speciesName) {

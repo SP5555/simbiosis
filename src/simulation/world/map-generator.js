@@ -58,6 +58,21 @@ export default class MapGenerator {
         // final uniform smooth
         for ( let i = 0; i < 4; i++ ) this.smooth(elevationMap, 0.3);
 
+        // ===== domain warp =====
+        // ao9's blur kernel is isotropic (no preferred direction), so no
+        // matter how the variable-smooth macroNoise above dials roughness
+        // per-region, smoothed features still come out blob/oval-shaped -
+        // that's a separate axis from roughness. Warping bends the
+        // COORDINATES elevation is sampled from using a broad, low-frequency
+        // noise field, so coastlines/ridgelines meander and twist instead of
+        // reading as smoothed blobs. Applied before distanceToWaterMap below
+        // so humidity's coastal proximity naturally follows the same bent
+        // coastline rather than the old straight one.
+        const warpX = this.buildWarpMap(elevationMap.metaData.width, elevationMap.metaData.height);
+        const warpY = this.buildWarpMap(elevationMap.metaData.width, elevationMap.metaData.height);
+        const warpStrength = elevationMap.metaData.width * 0.035;
+        elevationMap = this.warpByMap(elevationMap, warpX, warpY, warpStrength);
+
         // ===== ground fertility =====
         let fertilityMap = this.random2D(width, height, 0, 1.0);
         this.smooth(fertilityMap);
@@ -214,6 +229,56 @@ export default class MapGenerator {
             newMap.push(row);
         }
         map.splice(0, map.length, ...newMap);
+    }
+
+    // a broad, low-frequency [-1, 1] field used to bend sampling coordinates
+    // (see warpByMap) - generated directly at final resolution and heavily
+    // blurred, rather than run through the progressive expand4x octaves
+    // everything else uses, since a warp field specifically wants coarse,
+    // sweeping variation, not fine per-cell detail
+    static buildWarpMap(width, height) {
+        const m = this.random2D(width, height, -1, 1);
+        for (let i = 0; i < 10; i++) this.smooth(m, 0.8);
+        this.clamp(m, -1, 1);
+        return m;
+    }
+
+    // resamples `map` through a coordinate offset drawn from warpX/warpY
+    // (each cell reads from `map` at (x + warpX*strength, y + warpY*strength)
+    // instead of its own position), bilinearly interpolating since the
+    // warped position lands between grid cells
+    static warpByMap(map, warpX, warpY, strength) {
+        const width = map.metaData.width;
+        const height = map.metaData.height;
+        const newMap = [];
+
+        for (let y = 0; y < height; y++) {
+            const row = [];
+            for (let x = 0; x < width; x++) {
+                const sx = x + warpX[y][x] * strength;
+                const sy = y + warpY[y][x] * strength;
+                row.push(this.bilinearSample(map, sx, sy));
+            }
+            newMap.push(row);
+        }
+
+        newMap.metaData = { width, height };
+        return newMap;
+    }
+
+    static bilinearSample(map, x, y) {
+        const width = map.metaData.width;
+        const height = map.metaData.height;
+
+        const cx = Math.max(0, Math.min(width - 1, x));
+        const cy = Math.max(0, Math.min(height - 1, y));
+        const x0 = Math.floor(cx), x1 = Math.min(width - 1, x0 + 1);
+        const y0 = Math.floor(cy), y1 = Math.min(height - 1, y0 + 1);
+        const tx = cx - x0, ty = cy - y0;
+
+        const top = map[y0][x0] + (map[y0][x1] - map[y0][x0]) * tx;
+        const bottom = map[y1][x0] + (map[y1][x1] - map[y1][x0]) * tx;
+        return top + (bottom - top) * ty;
     }
 
     static amplify(map, amount, center = 0.0) {
