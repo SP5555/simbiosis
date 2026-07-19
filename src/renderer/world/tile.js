@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { hexToColor } from '../utils/color-utils.js';
 import {
     biomeFertilityToColorHex,
+    computeIceFactor,
     landTileColor,
     seaDepthToColorHex,
     waterTileColor,
@@ -114,9 +115,15 @@ export class WaterTile extends Tile {
         // fed into the water shader's aWaveOffset attribute; drives both the
         // vertex-shader position bob and fragment-shader color wobble
         this.waveOffset = (cell.elevation / 250) + cell.animOffset + Math.random() * 2;
+
+        // 0 (liquid) -> 1 (frozen); recomputed alongside color (see
+        // computeColor below) and fed into the aFreeze shader attribute by
+        // WaterTileManager to dampen the wave animation as ice forms
+        this.iceFactor = 0;
     }
 
     computeColor() {
+        this.iceFactor = computeIceFactor(this.simCell.temperature);
         return waterTileColor(this);
     }
 }

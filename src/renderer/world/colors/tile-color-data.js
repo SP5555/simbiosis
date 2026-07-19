@@ -1,9 +1,12 @@
 'use strict'
 
+// deep -> shallow, held to a consistent blue/cyan hue range (~197-223deg)
+// rather than drifting into violet at depth like the old stops did
 export const SEA_DEPTH_COLOR_STOPS = [
-    [-3000, 0x1426ac],
-    [-1500, 0x2436cc],
-    [    0, 0x3479cc],
+    [-3500, 0x0e162a],
+    [-1800, 0x172f4f],
+    [ -600, 0x225881],
+    [    0, 0x3694ba],
 ];
 
 // hypsometric tint, shared by land and water: deep ocean -> shallow water ->

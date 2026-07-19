@@ -26,8 +26,11 @@ export function waterTileColor(tile) {
         return hexToColor(temperatureToColorHex(tile.simCell.temperature));
     if (f == "Humidity")
         return hexToColor(humidityToColorHex(tile.simCell.humidity));
-    // wave wobble multiply is applied in-shader (see tile-shader-effects.js)
-    return tile.colors.base.clone();
+    // wave wobble multiply is applied in-shader (see tile-shader-effects.js);
+    // diagnostic filters above show the raw gradient unmodified, but the
+    // default view blends toward ice as the tile's iceFactor (see
+    // computeIceFactor) approaches 1
+    return hexToColor(iceOverlayHex(tile.colors.baseHex, tile.iceFactor));
 }
 
 export function landTileColor(tile) {
@@ -71,6 +74,23 @@ function fertilityToColorHex(fertility) {
 
 function humidityToColorHex(humidity) {
     return interpolateColorStops(humidity, HUMIDITY_COLOR_STOPS);
+}
+
+// 0 (liquid) -> 1 (fully frozen) over a small band around freezing, not a
+// hard snap - also drives the in-shader wave dampening (see WaterTile and
+// tile-shader-effects.js's applyWaveEffect)
+const ICE_START_TEMP = 0;
+const ICE_FULL_TEMP = -3;
+
+export function computeIceFactor(temperature) {
+    if (temperature >= ICE_START_TEMP) return 0;
+    const t = (ICE_START_TEMP - temperature) / (ICE_START_TEMP - ICE_FULL_TEMP);
+    return Math.min(1, t);
+}
+
+function iceOverlayHex(baseHex, iceFactor) {
+    const iceColor = 0xd7ecf5;
+    return lerpColorHex(baseHex, iceColor, iceFactor);
 }
 
 function tempDecorHex(bcHex, temperature) {

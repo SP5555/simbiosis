@@ -25,6 +25,10 @@ export default class WaterTileManager extends InstancedMeshManager {
         this.instances.forEach((tile, i) => waveOffsetAttr.setX(i, tile.waveOffset));
         waveOffsetAttr.needsUpdate = true;
 
+        this.freezeAttr = this.createInstancedAttribute('aFreeze', 1);
+        this.instances.forEach((tile, i) => this.freezeAttr.setX(i, tile.iceFactor));
+        this.freezeAttr.needsUpdate = true;
+
         this.updatePos();
     }
 
@@ -33,6 +37,22 @@ export default class WaterTileManager extends InstancedMeshManager {
     // and only where dirty
     updateInstancedMeshes() {
         this.updateDirtyColors();
+        this.updateDirtyFreeze();
+    }
+
+    // piggybacks on the same colorDirty flag as updateDirtyColors - iceFactor
+    // is recomputed at the exact same time as color (see WaterTile.computeColor),
+    // so it's really the same underlying trigger (temperature change), not a
+    // separate thing worth its own dirty-tracking
+    updateDirtyFreeze() {
+        let anyDirty = false;
+        this.instances.forEach((tile, i) => {
+            if (!tile.colorDirty) return;
+            this.freezeAttr.setX(i, tile.iceFactor);
+            this.freezeAttr.addUpdateRange(i, 1);
+            anyDirty = true;
+        });
+        if (anyDirty) this.freezeAttr.needsUpdate = true;
     }
 
     mapFilterChange(filterName) {

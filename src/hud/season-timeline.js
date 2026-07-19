@@ -4,7 +4,7 @@ import { computeSunColorHex } from '../renderer/world/colors/sun-color-core.js';
 import { DAYS_PER_YEAR } from '../simulation/world/data.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const SVG_WIDTH = 170;
+const SVG_WIDTH = 210;
 const BAR_HEIGHT = 16;
 const BAR_Y = 4;
 const GAP = 3;
@@ -66,12 +66,16 @@ export default class SeasonTimeline {
         }
     }
 
-    // called whenever the climate (zone/hemisphere) changes - recolors the
-    // static bar, relabels each segment with the season that now occupies
-    // that quarter (season->quarter mapping rotates with hemisphere), and
-    // updates the climate readout above it
+    // called whenever the climate (zone/hemisphere) changes, or the current
+    // seasonal base temperature ticks - recolors the static bar, relabels
+    // each segment with the season that now occupies that quarter (season->
+    // quarter mapping rotates with hemisphere), and updates the climate
+    // readout above it, including the current base temperature as a stand-in
+    // for the map's average - individual cells deviate from this via
+    // elevation/humidity/microclimate, but actually averaging every cell
+    // just for a HUD readout isn't worth the O(n) map walk
     updateClimate(climate) {
-        const { seasons, tempCurve, hemisphereName, climateZoneName } = climate;
+        const { seasons, tempCurve, hemisphereName, climateZoneName, baseTemp: currentBaseTemp } = climate;
         const { mean, amplitude, peakOffset } = tempCurve;
 
         for (let i = 0; i < 4; i++) {
@@ -83,7 +87,7 @@ export default class SeasonTimeline {
             this.labels[i].textContent = seasons[i].slice(0, 2).toUpperCase();
         }
 
-        this.climateLabelEl.textContent = `${hemisphereName} ${climateZoneName}`;
+        this.climateLabelEl.textContent = `${hemisphereName} ${climateZoneName} (${Math.round(currentBaseTemp)}°C)`;
     }
 
     // called every frame-ish (see HudManager) for smooth marker motion,

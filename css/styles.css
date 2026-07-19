@@ -98,7 +98,7 @@ canvas { display: block; }
     display: flex;
     flex-direction: column;
     color: white;
-    width: 170px;
+    width: 210px;
 }
 #seasonTimeline {
     width: 100%;

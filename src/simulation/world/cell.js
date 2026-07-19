@@ -24,6 +24,15 @@ export default class Cell {
         // elevation/humidity contours
         this.biomeJitter = biomeJitter;
 
+        // deep water resists temperature change far more than shallow water
+        // (thermal mass, no direct surface exposure) - not a different
+        // equilibrium temperature, just a much slower response to it, so a
+        // single winter chills a shallow bay to freezing while deep ocean
+        // barely moves (though sustained multi-year cold still eventually
+        // catches up, same as this loosely approximates real oceans). Land
+        // keeps today's fast response.
+        this.tempInertiaRate = this.computeTempInertiaRate(elevation);
+
         this.temperature = this.elevationToTemp(baseTemp, elevation);
 
         this.biome = this.classifyBiome();
@@ -60,7 +69,17 @@ export default class Cell {
         const elevTarget = this.elevationToTemp(baseTemp, this.elevation);
         const elevMomentum = 0.5;
         const target = (1 - elevMomentum) * baseTemp + elevMomentum * elevTarget;
-        this.temperature += 0.05 * (target - this.temperature);
+        this.temperature += this.tempInertiaRate * (target - this.temperature);
+    }
+
+    computeTempInertiaRate(elevation) {
+        const FAST_RATE = 0.05;    // land / shallow water - today's behavior
+        const SLOW_RATE = 0.0001;  // deep ocean - takes years to catch up
+        const MAX_DEPTH = 3000;
+
+        if (elevation >= SEA_LEVEL) return FAST_RATE;
+        const depthT = Math.min(-elevation / MAX_DEPTH, 1);
+        return FAST_RATE + (SLOW_RATE - FAST_RATE) * depthT;
     }
 
     getSpecies(speciesName) {
