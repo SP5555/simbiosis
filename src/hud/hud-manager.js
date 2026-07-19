@@ -3,12 +3,13 @@
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
 import SeasonTimeline from './season-timeline.js';
+import TilePanel from './tile-panel.js';
 
 export default class HudManager {
     constructor() {
         this.seasonTimeline = new SeasonTimeline();
+        this.tilePanel = new TilePanel();
         this.fpsEl = document.getElementById("simStatFPS");
-        this.activeTileTableEl = document.getElementById("activeTileTable");
 
         this.weightedAvgFPS = 0;
         this.activeTile = null;
@@ -48,24 +49,7 @@ export default class HudManager {
     }
 
     updateSelectedTileStats() {
-        this.activeTileTableEl.innerHTML = '';
-
-        if (!this.activeTile) {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.colSpan = 3;
-            td.textContent = "Click on something";
-            tr.appendChild(td);
-            this.activeTileTableEl.appendChild(tr);
-            return;
-        }
-
-        const stats = this.activeTile.simCell.getDisplayStats();
-
-        for (const [label, value] of Object.entries(stats)) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${label}</td><td>:</td><td>${value}</td>`;
-            this.activeTileTableEl.appendChild(tr);
-        }
+        const stats = this.activeTile ? this.activeTile.simCell.getDisplayStats() : null;
+        this.tilePanel.update(stats);
     }
 }

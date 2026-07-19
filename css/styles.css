@@ -151,6 +151,83 @@ canvas { display: block; }
     margin-top: 4px;
 }
 
+.tile-panel-box {
+    color: white;
+    width: 160px;
+}
+#tilePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.tile-stat-empty {
+    opacity: 0.6;
+    font-style: italic;
+    font-size: 0.85em;
+}
+.tile-header {
+    margin-bottom: 6px;
+}
+.tile-header-main {
+    line-height: 1.2;
+}
+.tile-header-biome {
+    font-size: 1.35em;
+    font-weight: bold;
+}
+.tile-header-location {
+    font-size: 0.6em;
+    font-weight: normal;
+    opacity: 0.55;
+    margin-left: 1px;
+}
+.tile-header-detail {
+    font-size: 0.95em;
+    opacity: 0.85;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+.tile-stat-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    column-gap: 16px;
+    align-items: center;
+    font-size: 0.8em;
+}
+.tile-stat-label {
+    opacity: 0.75;
+}
+.tile-stat-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.tile-stat-bar-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+}
+.tile-stat-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+.tile-stat-value {
+    opacity: 0.9;
+    white-space: nowrap;
+}
+.tile-stat-current {
+    font-weight: bold;
+}
+.tile-stat-max {
+    opacity: 0.55;
+    margin-left: 1px;
+}
+
 #LinkGitHub {
     text-decoration: none;
     color: white;

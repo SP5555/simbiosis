@@ -143,9 +143,13 @@ export default class Vegetation {
     }
 
     getDisplayStats() {
-        if (this.value <= 0) return null;
-        return {
-            Vegetation: this.value.toFixed(2)
-        };
+        if (this.value <= 0) return [];
+        return [{
+            key: "vegetation",
+            label: "Vegetation",
+            type: "ratio",
+            current: this.value.toFixed(1),
+            max: this.max.toFixed(0),
+        }];
     }
 }

@@ -47,6 +47,8 @@ export const HUMIDITY_COLOR_STOPS = [
 ];
 
 export const BIOME_COLOR_MAP = {
+    "Ocean":        0x4a9ecc,
+
     "Desert":       0xccad60,
     "Steppe":       0xad8967,
     "Tundra":       0xa89d99, // 0xa3914d,

@@ -90,27 +90,35 @@ export default class Cell {
         }
     }
 
-    // only return string values
+    // returns a { header, rows } pair for the tile inspector HUD (see
+    // TilePanel): header is the always-present Location/Biome/Elevation/
+    // Temperature identity line (biome is "Ocean" for water, set by
+    // classifyBiome() below), rows are the water-exempt extras
+    // (Fertility/Humidity/flora), as type-tagged descriptors rather than
+    // pre-formatted strings since the panel renders visuals (color
+    // swatches, bars) that need the raw underlying value
     getDisplayStats() {
-        let baseStats = {
-            Location: `(${this.x},${this.y})`,
-            Elevation: `${this.elevation.toFixed(0)}m`,
-            Temperature: `${this.temperature.toFixed(1)} degC`,
+        const header = {
+            location: `(${this.x}, ${this.y})`,
+            biome: this.biome,
+            elevation: `${Math.round(this.elevation).toLocaleString()}m`,
+            temperature: this.temperature,
+            temperatureDisplay: `${Math.round(this.temperature)}°C`,
         };
 
-        if (this.isWater) return baseStats;
+        const rows = [];
+        if (!this.isWater) {
+            rows.push({ key: "fertility", label: "Fertility", type: "bar", fraction: this.fertility, display: `${(this.fertility * 100).toFixed(1)}%` });
+            rows.push({ key: "humidity", label: "Humidity", type: "bar", fraction: this.humidity, display: `${(this.humidity * 100).toFixed(1)}%` });
 
-        baseStats.Biome = this.biome;
-        baseStats.Fertility = `${(this.fertility * 100).toFixed(2)}%`;
-        baseStats.Humidity = `${(this.humidity * 100).toFixed(2)}%`;
-
-        for (let speciesName in this.flora) {
-            const flora = this.flora[speciesName];
-            if (flora?.getDisplayStats) {
-                Object.assign(baseStats, flora.getDisplayStats());
+            for (let speciesName in this.flora) {
+                const flora = this.flora[speciesName];
+                if (flora?.getDisplayStats) {
+                    rows.push(...flora.getDisplayStats());
+                }
             }
         }
 
-        return baseStats;
+        return { header, rows };
     }
 }
