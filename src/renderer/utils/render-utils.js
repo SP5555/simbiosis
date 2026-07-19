@@ -1,5 +1,20 @@
 'use strict'
 
+import * as THREE from 'three';
+
+// converts a cell's grid coordinates/elevation into the world-space position
+// used to place its tile/vegetation instance - shared by every mesh manager
+// that places one instance per cell (land, water, vegetation), since it's
+// the same formula in each: center the grid on the origin, and scale
+// elevation down into the renderer's much flatter vertical range
+export function cellToWorldPosition(cell, mapWidth, mapHeight) {
+    return new THREE.Vector3(
+        cell.x + 0.5 - mapWidth / 2,
+        Math.max(cell.elevation, 0) / 600,
+        cell.y + 0.5 - mapHeight / 2,
+    );
+}
+
 /**
  * Interpolates between two values with wrap-around handling.
  *

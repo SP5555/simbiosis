@@ -1,6 +1,7 @@
 'use strict'
 
 import * as THREE from 'three';
+import { cellToWorldPosition } from '../utils/render-utils.js';
 
 export default class InstancedMeshManager {
     constructor() {
@@ -8,6 +9,25 @@ export default class InstancedMeshManager {
         this.count = null;
         this.filter = null;
         this.instancedMesh = null;
+    }
+
+    // shared by managers that place one instance per cell matching some
+    // predicate (LandTileManager/WaterTileManager: land vs water) - the loop
+    // and positioning are identical, only which cells qualify and which
+    // instance class wraps them differs
+    buildFromMapCells(map, predicate, InstanceClass) {
+        this.instances = [];
+
+        for (let y = 0; y < map.height; y++) {
+            for (let x = 0; x < map.width; x++) {
+                const cell = map.getCell(x, y);
+                if (!predicate(cell)) continue;
+                const position = cellToWorldPosition(cell, map.width, map.height);
+                this.instances.push(new InstanceClass(cell, position));
+            }
+        }
+
+        this.count = this.instances.length;
     }
 
     createInstancedMesh(geometry, material) {

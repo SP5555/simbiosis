@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { computeSunColorHex } from './colors/sun-color-core.js';
-import { lerpWrap } from '../utils/utils.js';
+import { lerpWrap } from '../utils/render-utils.js';
 import { eventBus } from '../../utils/event-emitters.js';
 import { EVENTS } from '../../utils/events.js';
 

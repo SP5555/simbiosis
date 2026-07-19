@@ -1,9 +1,9 @@
 'use strict'
 
 import * as THREE from 'three';
-import { eventBus } from './event-emitters.js';
-import { EVENTS } from './events.js';
-import { isMouseOverGUI } from './gui-utils.js';
+import { eventBus } from '../utils/event-emitters.js';
+import { EVENTS } from '../utils/events.js';
+import { isMouseOverGUI } from '../utils/gui-utils.js';
 
 export default class TilePicker {
     constructor(camera, input, managers) {
@@ -31,14 +31,12 @@ export default class TilePicker {
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         let closestDist = Infinity;
-        let closestHit = null;
         let closestTile = null;
 
         for (const manager of Object.values(this.managers)) {
-            const { dist, hit, tile } = this.getCollidingInstance(manager);
+            const { dist, tile } = this.getCollidingInstance(manager);
             if (tile && dist < closestDist) {
                 closestDist = dist;
-                closestHit = hit;
                 closestTile = tile;
             }
         }
@@ -52,11 +50,10 @@ export default class TilePicker {
 
     getCollidingInstance(manager) {
         const mesh = manager.getDrawable();
-        if (!mesh) return { dist: Infinity, hit: null, tile: null };
+        if (!mesh) return { dist: Infinity, tile: null };
 
         const intersects = this.raycaster.intersectObject(mesh);
         let closestDist = Infinity;
-        let closestHit = null;
         let closestTile = null;
 
         for (const inst of intersects) {
@@ -64,13 +61,12 @@ export default class TilePicker {
                 const tile = manager.instances[inst.instanceId];
                 if (tile) {
                     closestDist = inst.distance;
-                    closestHit = inst;
                     closestTile = tile;
                 }
             }
         }
 
-        return { dist: closestDist, hit: closestHit, tile: closestTile };
+        return { dist: closestDist, tile: closestTile };
     }
 
     handleClick() {

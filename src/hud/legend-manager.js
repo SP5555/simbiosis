@@ -14,7 +14,7 @@ import {
 // legend shape and are handled elsewhere
 const LEGEND_CONFIG = {
     "Elevation":   { stops: ELEVATION_COLOR_STOPS,   format: v => `${v.toFixed(0)}m` },
-    "Temperature": { stops: TEMPERATURE_COLOR_STOPS, format: v => `${v.toFixed(0)} degC` },
+    "Temperature": { stops: TEMPERATURE_COLOR_STOPS, format: v => `${v.toFixed(0)}°C` },
     "Fertility":   { stops: FERTILITY_COLOR_STOPS,   format: v => `${(v * 100).toFixed(0)}%` },
     "Humidity":    { stops: HUMIDITY_COLOR_STOPS,    format: v => `${(v * 100).toFixed(0)}%` },
 };

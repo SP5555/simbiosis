@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
 import VegetationManager from './mesh-managers/vegetation-manager.js';
-import TilePicker from '../utils/tile-picker.js';
+import TilePicker from './tile-picker.js';
 import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
 import { EVENTS } from '../utils/events.js';
@@ -47,6 +47,12 @@ export default class Renderer {
         this.landTileManager = new LandTileManager();
         this.waterTileManager = new WaterTileManager();
         this.vegeManager = new VegetationManager();
+        // all managers that place one instance per map cell (drives the
+        // build/dispose/animate/upload fan-out below); a subset also
+        // responds to terrain filter changes (vegetation doesn't - see
+        // mapFilterChange)
+        this.managers = [this.landTileManager, this.waterTileManager, this.vegeManager];
+        this.filterableManagers = [this.landTileManager, this.waterTileManager];
 
         this.tilePicker = new TilePicker(
             this.cameraController.getCamera(), this.input,
@@ -83,14 +89,11 @@ export default class Renderer {
         this.waterTileManager.buildFromMap(this.simulation.map);
         this.vegeManager.buildFromFloraSystem(this.simulation.floraSystem);
 
-        this.landTileManager.buildInstancedMeshes();
-        this.waterTileManager.buildInstancedMeshes();
-        this.vegeManager.buildInstancedMeshes();
-        
-        this.scene.add(this.landTileManager.getDrawable());
-        this.scene.add(this.waterTileManager.getDrawable());
-        this.scene.add(this.vegeManager.getDrawable());
-        
+        for (const manager of this.managers) {
+            manager.buildInstancedMeshes();
+            this.scene.add(manager.getDrawable());
+        }
+
         eventBus.emit(EVENTS.NEW_SCALE_CALCULATED, {
             width: this.simulation.map.width,
             height: this.simulation.map.height
@@ -98,15 +101,12 @@ export default class Renderer {
     }
 
     clearScene() {
-        this.scene.remove(this.landTileManager.getDrawable());
-        this.scene.remove(this.waterTileManager.getDrawable());
-        this.scene.remove(this.vegeManager.getDrawable());
-        // release GPU memory
-        this.landTileManager.dispose();
-        this.waterTileManager.dispose();
-        this.vegeManager.dispose();
+        for (const manager of this.managers) {
+            this.scene.remove(manager.getDrawable());
+            manager.dispose(); // release GPU memory
+        }
     }
-    
+
     rebuildScene() {
         this.clearScene();
         this.buildScene();
@@ -118,7 +118,7 @@ export default class Renderer {
         this.tilePicker.update();
         this.renderer.render(this.scene, this.cameraController.getCamera());
     }
-    
+
     updateScene(coreDt, simDt) {
         advanceShaderClock(simDt, coreDt);
         this.sun.update(this.simulation.climate, simDt);
@@ -127,15 +127,11 @@ export default class Renderer {
     }
 
     updateAnimationState(coreDt, simDt) {
-        this.landTileManager.updateAnimationState(coreDt, simDt);
-        this.waterTileManager.updateAnimationState(coreDt, simDt);
-        this.vegeManager.updateAnimationState(coreDt, simDt);
+        for (const manager of this.managers) manager.updateAnimationState(coreDt, simDt);
     }
 
     updateInstancedMeshes() {
-        this.landTileManager.updateInstancedMeshes();
-        this.waterTileManager.updateInstancedMeshes();
-        this.vegeManager.updateInstancedMeshes();
+        for (const manager of this.managers) manager.updateInstancedMeshes();
     }
 
     updateHoveredTile(tile) {
@@ -155,8 +151,7 @@ export default class Renderer {
     }
 
     mapFilterChange(filterName) {
-        this.landTileManager.mapFilterChange(filterName);
-        this.waterTileManager.mapFilterChange(filterName);
+        for (const manager of this.filterableManagers) manager.mapFilterChange(filterName);
     }
 
     onResize() {

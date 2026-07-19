@@ -7,22 +7,7 @@ import { applySelectionEffect } from '../shaders/tile-shader-effects.js';
 
 export default class LandTileManager extends InstancedMeshManager {
     buildFromMap(map) {
-        this.instances = [];
-
-        for (let y = 0; y < map.height; y++) {
-            for (let x = 0; x < map.width; x++) {
-                const cell = map.getCell(x, y);
-                if (cell.isWater) continue;
-                const position = new THREE.Vector3(
-                    cell.x + 0.5 - map.width / 2,
-                    Math.max(cell.elevation, 0) / 600,
-                    cell.y + 0.5 - map.height / 2,
-                );
-                this.instances.push(new LandTile(cell, position));
-            }
-        }
-
-        this.count = this.instances.length;
+        this.buildFromMapCells(map, cell => !cell.isWater, LandTile);
     }
 
     buildInstancedMeshes() {

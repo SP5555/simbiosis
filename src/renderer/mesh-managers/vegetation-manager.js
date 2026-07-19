@@ -5,6 +5,7 @@ import Vegetation from '../entities/vegetation.js';
 import { eventBus } from '../../utils/event-emitters.js';
 import { EVENTS } from '../../utils/events.js';
 import InstancedMeshManager from './instanced-mesh-manager.js';
+import { cellToWorldPosition } from '../utils/render-utils.js';
 
 export default class VegetationManager extends InstancedMeshManager {
     constructor() {
@@ -26,11 +27,7 @@ export default class VegetationManager extends InstancedMeshManager {
                 const inst = floraSystem.getSpeciesAt("veg", x, y);
                 if (!inst) continue;
                 const cell = inst.cell;
-                const pos = new THREE.Vector3(
-                    cell.x + 0.5 - floraSystem.width/2,
-                    Math.max(cell.elevation, 0) / 600,
-                    cell.y + 0.5 - floraSystem.height/2
-                );
+                const pos = cellToWorldPosition(cell, floraSystem.width, floraSystem.height);
                 this.instances.push(new Vegetation(inst, pos));
             }
         }
