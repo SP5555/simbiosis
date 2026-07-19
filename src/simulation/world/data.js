@@ -22,9 +22,14 @@ export const CLIMATE_ZONES = {
 // (summer/winter swapped) - not a different zone shape, a phase flip that
 // applies to any zone. It naturally becomes a near no-op for a low-amplitude
 // zone like Equatorial, which is physically consistent rather than a hack.
+//
+// Offsets land on the MIDPOINT of each hemisphere's summer/winter quarter
+// (e.g. Northern summer spans [0.25, 0.5), midpoint 0.375), not the quarter
+// boundary - the peak/trough should fall in the middle of the season it
+// defines, not at the moment that season starts.
 export const HEMISPHERE_PEAK_OFFSET = {
-    "Northern": 0.25,
-    "Southern": 0.75,
+    "Northern": 0.375,
+    "Southern": 0.875,
 };
 
 export const DAYS_PER_YEAR = 20; // IRL 5m = sim 1y

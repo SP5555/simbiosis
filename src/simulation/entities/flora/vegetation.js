@@ -145,7 +145,7 @@ export default class Vegetation {
     getDisplayStats() {
         if (this.value <= 0) return null;
         return {
-            [this.constructor.name]: this.value.toFixed(2)
+            Vegetation: this.value.toFixed(2)
         };
     }
 }

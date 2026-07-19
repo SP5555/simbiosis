@@ -44,7 +44,13 @@ export default class Vegetation {
 
     updateValue() {
         const newValue = this.simVegetation.value;
-        if (this.lastValue !== undefined && Math.abs(newValue - this.lastValue) < 0.05) return;
+        // the alive/dead boundary always counts as significant, even when
+        // the numeric delta is tiny - otherwise a death that happens to
+        // occur right after a small registered value (e.g. lastValue=0.03
+        // collapsing to 0) falls under the magnitude threshold below and
+        // gets silently swallowed, leaving a dead plant rendered forever
+        const crossedZero = (this.lastValue > 0) !== (newValue > 0);
+        if (this.lastValue !== undefined && !crossedZero && Math.abs(newValue - this.lastValue) < 0.05) return;
 
         this.lastValue = newValue;
         this.value = newValue;
@@ -55,7 +61,7 @@ export default class Vegetation {
 
     updatePos() {
         const veg = Math.min(this.value, 100);
-        const s = 0.2 + 0.008 * veg;
+        const s = veg > 0 ? 0.2 + 0.008 * veg : 0;
         this._scaleMatrix.makeScale(s, s, 1);
         this._translateMatrix.makeTranslation(
             this.position.x,
