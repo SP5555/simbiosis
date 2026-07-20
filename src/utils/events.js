@@ -6,6 +6,7 @@ export const EVENTS = {
     SET_SIM_SPEED: "GUI:setSimSpeed",
     APPLY_TERRAIN_FILTER: "GUI:applyTerrainFilter",
     TOGGLE_VEGETATION: "GUI:toggleVegetation",
+    TOGGLE_FAUNA: "GUI:toggleFauna",
     GENERATE_MAP: "GUI:generateMap",
 
     // simulation events

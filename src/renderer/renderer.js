@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import LandTileManager from './mesh-managers/land-tile-manager.js';
 import WaterTileManager from './mesh-managers/water-tile-manager.js';
 import VegetationManager from './mesh-managers/vegetation-manager.js';
+import FaunaManager from './mesh-managers/fauna-manager.js';
 import TilePicker from './tile-picker.js';
 import Sun from './world/sun.js';
 import { eventBus } from '../utils/event-emitters.js';
@@ -40,25 +41,27 @@ export default class Renderer {
         this.auxLight2.position.copy(new THREE.Vector3(10, 10, 10));
         this.scene.add(this.auxLight2);
 
-        this.sun = new Sun();
+        this.sun = new Sun(this.cameraController.getCamera());
         this.scene.add(this.sun.getDrawable());
 
         // mesh managers
         this.landTileManager = new LandTileManager();
         this.waterTileManager = new WaterTileManager();
         this.vegeManager = new VegetationManager();
+        this.faunaManager = new FaunaManager();
         // all managers that place one instance per map cell (drives the
         // build/dispose/animate/upload fan-out below); a subset also
-        // responds to terrain filter changes (vegetation doesn't - see
+        // responds to terrain filter changes (vegetation/fauna don't - see
         // mapFilterChange)
-        this.managers = [this.landTileManager, this.waterTileManager, this.vegeManager];
+        this.managers = [this.landTileManager, this.waterTileManager, this.vegeManager, this.faunaManager];
         this.filterableManagers = [this.landTileManager, this.waterTileManager];
 
         this.tilePicker = new TilePicker(
             this.cameraController.getCamera(), this.input,
-            { // only hoverable tiles
+            { // pickable entities - closest hit wins regardless of type
                 land: this.landTileManager,
                 water: this.waterTileManager,
+                fauna: this.faunaManager,
             }
         )
         this.hoveredTile = null;
@@ -88,6 +91,7 @@ export default class Renderer {
         this.landTileManager.buildFromMap(this.simulation.map);
         this.waterTileManager.buildFromMap(this.simulation.map);
         this.vegeManager.buildFromFloraSystem(this.simulation.floraSystem);
+        this.faunaManager.buildFromFaunaSystem(this.simulation.faunaSystem);
 
         for (const manager of this.managers) {
             manager.buildInstancedMeshes();

@@ -28,9 +28,10 @@ export default class Simulation {
     generateMap(width, height, expand, seed = null) {
         this.climate.reset();
         this.floraSystem?.dispose();
+        this.faunaSystem?.dispose();
         this.map = MapGenerator.generate(width, height, expand, seed, this.climate.baseTemp);
         this.floraSystem = new FloraSystem(this.map);
-        this.faunaSystem = new FaunaSystem(this.map);
+        this.faunaSystem = new FaunaSystem(this.map, this.floraSystem);
 
         this.map.buildRefs(this.floraSystem);
 

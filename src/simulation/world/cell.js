@@ -38,10 +38,26 @@ export default class Cell {
         this.biome = this.classifyBiome();
 
         this.flora = {};
+        // unlike flora (a one-time buildRefs snapshot, since vegetation
+        // never leaves its cell), fauna herds are mobile - this is mutated
+        // live by a herd itself as it moves (see setFauna/clearFauna)
+        this.fauna = {};
     }
 
     buildRefs(floraSpecies) {
         this.flora = { ...floraSpecies };
+    }
+
+    setFauna(speciesName, herd) {
+        this.fauna[speciesName] = herd;
+    }
+
+    clearFauna(speciesName) {
+        delete this.fauna[speciesName];
+    }
+
+    getFauna(speciesName) {
+        return this.fauna[speciesName] ?? null;
     }
 
     step(baseTemp) {
@@ -164,8 +180,15 @@ export default class Cell {
                     rows.push(...flora.getDisplayStats());
                 }
             }
+
+            for (let speciesName in this.fauna) {
+                const herd = this.fauna[speciesName];
+                if (herd?.getDisplayStats) {
+                    rows.push(...herd.getDisplayStats());
+                }
+            }
         }
 
-        return { header, rows };
+        return { kind: "tile", header, rows };
     }
 }

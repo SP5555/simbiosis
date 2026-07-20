@@ -35,10 +35,35 @@ export default class TilePanel {
             return;
         }
 
-        this.container.appendChild(this.buildHeader(data.header));
+        const header = data.kind === 'herd' ? this.buildHerdHeader(data.header) : this.buildHeader(data.header);
+        this.container.appendChild(header);
         for (const stat of data.rows) {
             this.container.appendChild(this.buildRow(stat));
         }
+    }
+
+    // a herd doesn't have biome/elevation/temperature, so it gets a
+    // simpler header - reuses the same big-bold-title + small-trailing-
+    // location classes as the tile header for visual consistency
+    buildHerdHeader(header) {
+        const el = document.createElement('div');
+        el.className = 'tile-header';
+
+        const main = document.createElement('div');
+        main.className = 'tile-header-main';
+
+        const title = document.createElement('span');
+        title.className = 'tile-header-biome';
+        title.textContent = header.title;
+        main.appendChild(title);
+
+        const loc = document.createElement('span');
+        loc.className = 'tile-header-location';
+        loc.textContent = header.location;
+        main.appendChild(loc);
+
+        el.appendChild(main);
+        return el;
     }
 
     buildHeader(header) {

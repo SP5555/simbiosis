@@ -37,6 +37,13 @@ export default class VegetationManager extends InstancedMeshManager {
     buildInstancedMeshes() {
         const geometry = new THREE.PlaneGeometry(0.75, 0.75);
         const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
+        // a paper-thin double-sided plane is the classic shadow-acne worst
+        // case: both faces write near-identical depth into the shadow map,
+        // causing self-interference independent of any bias tuning. Forcing
+        // the shadow PASS to only ever use one consistent side (regardless
+        // of the DoubleSide visible-render setting above) removes that
+        // ambiguity; see Sun's normalBias for the other half of the fix.
+        material.shadowSide = THREE.FrontSide;
         this.createInstancedMesh(geometry, material);
     }
 

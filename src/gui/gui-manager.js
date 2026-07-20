@@ -36,6 +36,10 @@ export default class GuiManager {
         this.worldSettingsFolder.add(this.showVegetationParams, 'showVegetation')
             .name("Show Vegetation")
             .onChange(() => this.toggleVegetation());
+        this.showFaunaParams = { showFauna: true };
+        this.worldSettingsFolder.add(this.showFaunaParams, 'showFauna')
+            .name("Show Fauna")
+            .onChange(() => this.toggleFauna());
         this.worldSettingsFolder.open();
 
         // --- map generation ---
@@ -106,9 +110,14 @@ export default class GuiManager {
         eventBus.emit(EVENTS.TOGGLE_VEGETATION, this.showVegetationParams.showVegetation);
     }
 
+    toggleFauna() {
+        eventBus.emit(EVENTS.TOGGLE_FAUNA, this.showFaunaParams.showFauna);
+    }
+
     generateMap() {
         this.applyMapGeneration();
         this.applyTerrainFilter();
         this.toggleVegetation();
+        this.toggleFauna();
     }
 }

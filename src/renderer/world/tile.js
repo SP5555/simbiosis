@@ -77,6 +77,12 @@ class Tile {
         this.stateAttribute.needsUpdate = true;
     }
 
+    // uniform interface with the renderer Herd class so HudManager can hold
+    // either as "the current selection" without needing to know which
+    getDisplayStats() {
+        return this.simCell.getDisplayStats();
+    }
+
     updateAnimationState(coreDt, simDt) {
         this.updateColor();
     }

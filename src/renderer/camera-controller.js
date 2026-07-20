@@ -95,10 +95,9 @@ export default class CameraController {
         this.camera.position.copy(this.currentPosition);
         this.camera.lookAt(this.currentLookAt);
 
-        eventBus.emit(EVENTS.CAMERA_UPDATED, {
-            lookAt: this.currentLookAt,
-            zoomFactor: this.zoomFactor
-        });
+        // no payload - listeners (see Sun) hold their own camera reference
+        // and read whatever they need directly from it
+        eventBus.emit(EVENTS.CAMERA_UPDATED);
     }
 
     resize() {
